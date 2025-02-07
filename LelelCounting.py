@@ -1,6 +1,7 @@
 import time
 import cv2
 import HandTModule as htm
+import CollectionLevels as Cl
 from PyQt5.QtWidgets import QApplication, QLabel, QWidget, QPushButton, QFrame, QHBoxLayout, \
     QStyle, QMessageBox
 from PyQt5.QtGui import QImage, QPixmap, QFont
@@ -11,10 +12,12 @@ class CreateLevel:
     def __init__(self):
         self.current_level = 0
         self.numberTasks = 0
+        self.current_game_level = ""
 
     # Функція-обробник кнопки для створення рівня
     def create_new_level_click(self, current_game_level, card_name, level_cv_frame):
         print("Good luck: " + current_game_level)
+        self.current_game_level = current_game_level
         self.numberTasks = self.getNumTasks(current_game_level)
         print("Good luck: " + card_name)
         level_cv_frame.show()
@@ -97,35 +100,54 @@ class CreateLevel:
 
         timer = QTimer()
 
-        detector = htm.handDetector(detectionCon=0.75)
+        detector = htm.handDetector()
 
         def update_frame():
             ret, img = cap.read()
             if ret:
-                frame = detector.findHands(img)
-                # lmList = detector.findPosition(frame, draw=False)
+                frame = detector.findHands(img, Draw=False)
+                lmList = detector.findPosition(frame, Draw=False)
 
-                game_levels = [4, 2, 5]
+                levelGestures = [
+                    [Cl.gesture_oke_right, Cl.gesture_oke_left, cv2.imread(f'FingerImages/gesture_oke.jpg')],
+                    [Cl.gesture_peace_right, Cl.gesture_peace_left, cv2.imread(f'FingerImages/gesture_peace.jpg')],
+                    [Cl.gesture_wait_right, Cl.gesture_wait_left, cv2.imread(f'FingerImages/gesture_wait.jpg')]]
+                detector.setGesture(levelGestures[self.current_level][1], levelGestures[self.current_level][0])
 
-                if detector.fingerUpCount_withId(frame, game_levels[self.current_level]):
-                    founded_label = frameForLevelCounters.findChild(QLabel, "level_Counter_" + str(self.current_level))
-                    founded_label.setStyleSheet("""
-                                            QLabel {
-                                                background-color: #DAFFDF; /* Колір фону */
-                                                color: black; /* Колір тексту */
-                                                border-radius: 5px; /* Закруглення кутів */
-                                                border: 2px solid green;
-                                                font-size: 25px;
-                                                font-weight: bold;
-                                            }
-                                        """)
-                    founded_label.setText("✓")
-                    self.current_level += 1
-                    if self.current_level == self.numberTasks:
-                        self.show_message_box(0)
-                        # Завершення рівня
-                        stop_camera()
-                        self.closingCVframe(level_cv_frame, frameForLevelCounters)
+                gesture_img = levelGestures[self.current_level][2]
+
+                if gesture_img is not None:
+                    h, w, c = gesture_img.shape  # Отримуємо розміри
+                    frame[0:h, 0:w] = gesture_img  # Вставляємо зображення
+
+                if len(lmList) != 0:
+                    # Список точок, які потрібно знайти (IDs)
+                    targetPoints = [4, 8, 12, 16, 20]
+                    # Знаходимо потрібні точки
+                    tempArray = detector.extractPoints(lmList, targetPoints)
+                    print(tempArray)
+
+                    # Порівнюємо з жестом
+                    if detector.compareGestures(tempArray):
+                        founded_label = frameForLevelCounters.findChild(QLabel,
+                                                                        "level_Counter_" + str(self.current_level))
+                        founded_label.setStyleSheet("""
+                                                                QLabel {
+                                                                    background-color: #DAFFDF; /* Колір фону */
+                                                                    color: black; /* Колір тексту */
+                                                                    border-radius: 5px; /* Закруглення кутів */
+                                                                    border: 2px solid green;
+                                                                    font-size: 25px;
+                                                                    font-weight: bold;
+                                                                }
+                                                            """)
+                        founded_label.setText("✓")
+                        self.current_level += 1
+                        if self.current_level == self.numberTasks:
+                            self.show_message_box(0)
+                            # Завершення рівня
+                            stop_camera()
+                            self.closingCVframe(level_cv_frame, frameForLevelCounters)
 
                 # Конвертуємо кадр OpenCV в формат QImage
                 h, w, ch = frame.shape

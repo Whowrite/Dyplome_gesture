@@ -6,7 +6,7 @@ import numpy as np
 import CollectionLevels as cl
 
 class handDetector():
-    def __init__(self, right_gest, left_gest, mode=False, hands=2, detectionCon=0.5, trackCon=0.5):
+    def __init__(self, right_gest = cl.gesture_oke_right, left_gest = cl.gesture_oke_left, mode=False, hands=2, detectionCon=0.75, trackCon=0.5):
         self.mode = mode
         self.hands = hands
         self.detectionCon = detectionCon
@@ -108,6 +108,10 @@ class handDetector():
                     break
         return tempArray
 
+    def setGesture(self, leftGesture, rightGesture):
+        self.gesture_right = rightGesture
+        self.gesture_left = leftGesture
+
     def moveXY(self, x, y):
         for i in range(len(self.gesture_right)):
             self.gesture_right[i][1] -= x
@@ -151,10 +155,13 @@ class handDetector():
                     break
             if matches:
                 print("Жест повністю співпадає!")
+                return True
             else:
                 print("Жест не співпадає.")
+                return False
         else:
             print("Розмір масивів не співпадає.")
+            return False
 
 def main():
     pTime = 0
