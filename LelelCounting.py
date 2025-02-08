@@ -13,6 +13,7 @@ class CreateLevel:
         self.current_level = 0
         self.numberTasks = 0
         self.current_game_level = ""
+        self.levelGestures = []
 
     # Функція-обробник кнопки для створення рівня
     def create_new_level_click(self, current_game_level, card_name, level_cv_frame):
@@ -20,6 +21,7 @@ class CreateLevel:
         self.current_game_level = current_game_level
         self.numberTasks = self.getNumTasks(current_game_level)
         print("Good luck: " + card_name)
+        self.levelGestures = Cl.getlevelarray(card_name, current_game_level)
         level_cv_frame.show()
 
         # ------------------------------------------------------------------------------------------------------------------Мітки для відображення рук
@@ -108,13 +110,13 @@ class CreateLevel:
                 frame = detector.findHands(img, Draw=False)
                 lmList = detector.findPosition(frame, Draw=False)
 
-                levelGestures = [
-                    [Cl.gesture_oke_right, Cl.gesture_oke_left, cv2.imread(f'FingerImages/gesture_oke.jpg')],
-                    [Cl.gesture_peace_right, Cl.gesture_peace_left, cv2.imread(f'FingerImages/gesture_peace.jpg')],
-                    [Cl.gesture_wait_right, Cl.gesture_wait_left, cv2.imread(f'FingerImages/gesture_wait.jpg')]]
-                detector.setGesture(levelGestures[self.current_level][1], levelGestures[self.current_level][0])
+                # levelGestures = [
+                #     [Cl.gesture_oke_right, Cl.gesture_oke_left, cv2.imread(f'FingerImages/gesture_oke.jpg')],
+                #     [Cl.gesture_peace_right, Cl.gesture_peace_left, cv2.imread(f'FingerImages/gesture_peace.jpg')],
+                #     [Cl.gesture_wait_right, Cl.gesture_wait_left, cv2.imread(f'FingerImages/gesture_wait.jpg')]]
+                detector.setGesture(self.levelGestures[self.current_level][1], self.levelGestures[self.current_level][0])
 
-                gesture_img = levelGestures[self.current_level][2]
+                gesture_img = self.levelGestures[self.current_level][2]
 
                 if gesture_img is not None:
                     h, w, c = gesture_img.shape  # Отримуємо розміри
@@ -125,7 +127,7 @@ class CreateLevel:
                     targetPoints = [4, 8, 12, 16, 20]
                     # Знаходимо потрібні точки
                     tempArray = detector.extractPoints(lmList, targetPoints)
-                    print(tempArray)
+                    # print(tempArray)
 
                     # Порівнюємо з жестом
                     if detector.compareGestures(tempArray):
