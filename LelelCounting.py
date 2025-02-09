@@ -14,6 +14,7 @@ class CreateLevel:
         self.numberTasks = 0
         self.current_game_level = ""
         self.levelGestures = []
+        self.errorAnswers = 0
 
     # Функція-обробник кнопки для створення рівня
     def create_new_level_click(self, current_game_level, card_name, level_cv_frame):
@@ -102,6 +103,17 @@ class CreateLevel:
 
         timer = QTimer()
 
+        # Таймер на 90-40 секунд для автоматичного закриття рівня
+        if self.current_game_level == "button_level_4":
+            QTimer.singleShot(90000,
+                                    lambda: self.force_end_level(timer, cap, camera_label, level_cv_frame, frameForLevelCounters))
+        elif self.current_game_level == "button_level_5":
+            QTimer.singleShot(65000,
+                              lambda: self.force_end_level(timer, cap, camera_label, level_cv_frame, frameForLevelCounters))
+        elif self.current_game_level == "button_level_6":
+            QTimer.singleShot(40000,
+                              lambda: self.force_end_level(timer, cap, camera_label, level_cv_frame, frameForLevelCounters))
+
         detector = htm.handDetector()
 
         def update_frame():
@@ -110,46 +122,49 @@ class CreateLevel:
                 frame = detector.findHands(img, Draw=False)
                 lmList = detector.findPosition(frame, Draw=False)
 
-                # levelGestures = [
-                #     [Cl.gesture_oke_right, Cl.gesture_oke_left, cv2.imread(f'FingerImages/gesture_oke.jpg')],
-                #     [Cl.gesture_peace_right, Cl.gesture_peace_left, cv2.imread(f'FingerImages/gesture_peace.jpg')],
-                #     [Cl.gesture_wait_right, Cl.gesture_wait_left, cv2.imread(f'FingerImages/gesture_wait.jpg')]]
-                detector.setGesture(self.levelGestures[self.current_level][1], self.levelGestures[self.current_level][0])
+                if self.current_level != self.numberTasks:
+                    detector.setGesture(self.levelGestures[self.current_level][1], self.levelGestures[self.current_level][0])
+                    gesture_img = self.levelGestures[self.current_level][2]
+                    if gesture_img is not None:
+                        h, w, c = gesture_img.shape  # Отримуємо розміри
+                        frame[0:h, 0:w] = gesture_img  # Вставляємо зображення
 
-                gesture_img = self.levelGestures[self.current_level][2]
+                    if len(lmList) != 0:
+                        # Список точок, які потрібно знайти (IDs)
+                        targetPoints = [4, 8, 12, 16, 20]
+                        # Знаходимо потрібні точки
+                        tempArray = detector.extractPoints(lmList, targetPoints)
+                        # print(tempArray)
 
-                if gesture_img is not None:
-                    h, w, c = gesture_img.shape  # Отримуємо розміри
-                    frame[0:h, 0:w] = gesture_img  # Вставляємо зображення
+                        # Порівнюємо з жестом
+                        if detector.compareGestures(tempArray):
+                            founded_label = frameForLevelCounters.findChild(QLabel,
+                                                                            "level_Counter_" + str(self.current_level))
+                            founded_label.setStyleSheet("""
+                                                                    QLabel {
+                                                                        background-color: #DAFFDF; /* Колір фону */
+                                                                        color: black; /* Колір тексту */
+                                                                        border-radius: 5px; /* Закруглення кутів */
+                                                                        border: 2px solid green;
+                                                                        font-size: 25px;
+                                                                        font-weight: bold;
+                                                                    }
+                                                                """)
+                            founded_label.setText("✓")
+                            self.current_level += 1
+                            if self.current_level == self.numberTasks:
+                                def end_level():
+                                    if self.show_message_box():
+                                        # Завершення рівня після показу повідомлення
+                                        self.stop_camera(timer, cap, camera_label)
+                                        self.closingCVframe(level_cv_frame, frameForLevelCounters)
+                                    else:
+                                        self.current_level = 0
+                                        self.errorAnswers = 0
+                                        self.uncheckButtons(frameForLevelCounters)
 
-                if len(lmList) != 0:
-                    # Список точок, які потрібно знайти (IDs)
-                    targetPoints = [4, 8, 12, 16, 20]
-                    # Знаходимо потрібні точки
-                    tempArray = detector.extractPoints(lmList, targetPoints)
-                    # print(tempArray)
+                                QTimer.singleShot(1000, end_level) # Затримка 3 секунди (3000 мс)
 
-                    # Порівнюємо з жестом
-                    if detector.compareGestures(tempArray):
-                        founded_label = frameForLevelCounters.findChild(QLabel,
-                                                                        "level_Counter_" + str(self.current_level))
-                        founded_label.setStyleSheet("""
-                                                                QLabel {
-                                                                    background-color: #DAFFDF; /* Колір фону */
-                                                                    color: black; /* Колір тексту */
-                                                                    border-radius: 5px; /* Закруглення кутів */
-                                                                    border: 2px solid green;
-                                                                    font-size: 25px;
-                                                                    font-weight: bold;
-                                                                }
-                                                            """)
-                        founded_label.setText("✓")
-                        self.current_level += 1
-                        if self.current_level == self.numberTasks:
-                            self.show_message_box(0)
-                            # Завершення рівня
-                            stop_camera()
-                            self.closingCVframe(level_cv_frame, frameForLevelCounters)
 
                 # Конвертуємо кадр OpenCV в формат QImage
                 h, w, ch = frame.shape
@@ -173,12 +188,7 @@ class CreateLevel:
         timer.timeout.connect(update_frame)
         timer.start(30)  # Оновлюємо кадри кожні 30 мс (~33 fps)
 
-        # Закриття камери при виході
-        def stop_camera():
-            timer.stop()
-            cap.release()
-            camera_label.clear()
-            print("Camera stopped")
+
 
         # ------------------------------------------------------------------------------------------------------------------Кнопка для повернення на сторінку вибору рівня
 
@@ -205,9 +215,66 @@ class CreateLevel:
                                     background-color: #1f618d; /* Колір кнопки при натисканні */
                                 }
                             """)
-        button_return.clicked.connect(lambda: (stop_camera(), self.closingCVframe(level_cv_frame, frameForLevelCounters)))
+        button_return.clicked.connect(lambda: (self.stop_camera(timer, cap, camera_label), self.closingCVframe(level_cv_frame, frameForLevelCounters)))
+
+        # ------------------------------------------------------------------------------------------------------------------Кнопка пропуску жеста
+
+        button_skip = QPushButton(level_cv_frame)
+        button_skip.setGeometry(570, 850, 200, 60)
+        button_skip.setText("Пропустити")
+        button_skip.show()
+
+        font = QFont()
+        font.setBold(True)
+        font.setPointSize(16)
+        button_skip.setFont(font)
+
+        button_skip.setStyleSheet("""
+                                        QPushButton {
+                                            background-color: #DAFFDF; /* Колір кнопки */
+                                            color: black; /* Колір тексту */
+                                            border-radius: 10px; /* Закруглення кутів */
+                                        }
+                                        QPushButton:hover {
+                                            background-color: #5dade2; /* Колір кнопки при наведенні */
+                                        }
+                                        QPushButton:pressed {
+                                            background-color: #1f618d; /* Колір кнопки при натисканні */
+                                        }
+                                    """)
+        button_skip.clicked.connect(
+            lambda: (self.skipGesture(level_cv_frame, frameForLevelCounters, timer, cap, camera_label)))
 
         # ------------------------------------------------------------------------------------------------------------------
+
+    # Примусове завершення рівня після N секунд
+    def force_end_level(self, timer, cap, camera_label, level_cv_frame, frameForLevelCounters):
+        """Примусове завершення рівня після N секунд"""
+        print("Час вийшов! Рівень закрито.")
+        self.stop_camera(timer, cap, camera_label)
+        self.closingCVframe(level_cv_frame, frameForLevelCounters)
+
+    # Повернення стану кнопок контейнера для відображення кількості завдань
+    def uncheckButtons(self, frameForLevelCounters):
+        for i in range(self.numberTasks):
+            founded_label = frameForLevelCounters.findChild(QLabel,
+                                                            "level_Counter_" + str(i))
+            founded_label.setStyleSheet("""
+                            QLabel {
+                                    background-color: #DAFFDF; /* Колір фону */
+                                    color: black; /* Колір тексту */
+                                    border-radius: 5px; /* Закруглення кутів */
+                                    border: 2px solid blue;
+                            }
+                            """)
+            founded_label.setText("")
+
+    # Закриття камери при виході
+    def stop_camera(self, timer, cap, camera_label):
+        timer.stop()
+        cap.release()
+        camera_label.clear()
+        print("Camera stopped")
 
     # Функція для визначення кількоcті завдань від вибраного рівня
     def getNumTasks(self, current_game_level):
@@ -232,33 +299,73 @@ class CreateLevel:
         print("Close level_cv_frame")
         level_cv_frame.hide()
         self.current_level = 0
+        self.errorAnswers = 0
         # Отримуємо всіх дочірніх віджетів фрейму
         for child in frameForLevelCounters.findChildren(QWidget):
             # Видаляємо кожного дочірнього віджета
             child.deleteLater()
 
+    # Функція-обробник кнопки для пропуску жеста
+    def skipGesture(self, level_cv_frame, frameForLevelCounters, timer, cap, camera_label):
+        founded_label = frameForLevelCounters.findChild(QLabel,
+                                                        "level_Counter_" + str(self.current_level))
+        founded_label.setStyleSheet("""
+                                                                        QLabel {
+                                                                            background-color: #DAFFDF; /* Колір фону */
+                                                                            color: black; /* Колір тексту */
+                                                                            border-radius: 5px; /* Закруглення кутів */
+                                                                            border: 2px solid red;
+                                                                            font-size: 25px;
+                                                                            font-weight: bold;
+                                                                        }
+                                                                    """)
+        founded_label.setText("X")
+        self.current_level += 1
+        self.errorAnswers += 1
+        if self.current_level == self.numberTasks:
+            def end_level():
+                if self.show_message_box():
+                    # Завершення рівня після показу повідомлення
+                    self.stop_camera(timer, cap, camera_label)
+                    self.closingCVframe(level_cv_frame, frameForLevelCounters)
+                else:
+                    self.current_level = 0
+                    self.errorAnswers = 0
+                    self.uncheckButtons(frameForLevelCounters)
+
+            QTimer.singleShot(1000, end_level)  # Затримка 3 секунди (3000 мс)
+
     # Функція для відображення повідомлення про завершення рівня
-    def show_message_box(self, problems):
+    def show_message_box(self):
         # Створюємо повідомлення
         msg_box = QMessageBox()
         msg_box.setIcon(QMessageBox.Information)  # Іконка: Information, Warning, Critical, Question
         msg_box.setWindowTitle("Повідомлення")
-        if problems == 0:
+
+        if self.errorAnswers == 0:
             msg_box.setText("Рівень пройдено!")
             msg_box.setInformativeText("Бажаєте продовжити?")
-            msg_box.setDefaultButton(QMessageBox.Ok)
+            btn_ok = msg_box.addButton("Добре", QMessageBox.AcceptRole)
         else:
-            msg_box.setText(f"Ви зробили {problems} помилок під час проходження рівня!")
+            msg_box.setText(f"Ви зробили {self.errorAnswers} помилок під час проходження рівня!")
             msg_box.setInformativeText("Бажаєте пройти рівень заново?")
-            msg_box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+            btn_yes = msg_box.addButton("Так", QMessageBox.YesRole)
+            btn_no = msg_box.addButton("Ні", QMessageBox.NoRole)
 
         # Відображаємо повідомлення та отримуємо результат
-        result = msg_box.exec_()
+        msg_box.exec_()
 
         # Обробка дій користувача
-        if result == QMessageBox.Ok:
-            print("Натиснуто Ok")
-        elif result == QMessageBox.Yes:
-            print("Натиснуто Yes")
-        elif result == QMessageBox.No:
-            print("Натиснуто No")
+        clicked_button = msg_box.clickedButton()
+
+        if self.errorAnswers == 0:
+            if clicked_button == btn_ok:
+                print("Натиснуто Добре")
+                return True
+        else:
+            if clicked_button == btn_yes:
+                print("Натиснуто Так")
+                return False
+            elif clicked_button == btn_no:
+                print("Натиснуто Ні")
+                return True
