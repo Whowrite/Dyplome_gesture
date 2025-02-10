@@ -15,6 +15,8 @@ class CreateLevel:
         self.current_game_level = ""
         self.levelGestures = []
         self.errorAnswers = 0
+        self.time_remaining = 0
+        self.countdown_timer = QTimer()
 
     # Функція-обробник кнопки для створення рівня
     def create_new_level_click(self, current_game_level, card_name, level_cv_frame):
@@ -105,13 +107,13 @@ class CreateLevel:
 
         # Таймер на 90-40 секунд для автоматичного закриття рівня
         if self.current_game_level == "button_level_4":
-            QTimer.singleShot(90000,
+            QTimer.singleShot(93000,
                                     lambda: self.force_end_level(timer, cap, camera_label, level_cv_frame, frameForLevelCounters))
         elif self.current_game_level == "button_level_5":
-            QTimer.singleShot(65000,
+            QTimer.singleShot(68000,
                               lambda: self.force_end_level(timer, cap, camera_label, level_cv_frame, frameForLevelCounters))
         elif self.current_game_level == "button_level_6":
-            QTimer.singleShot(40000,
+            QTimer.singleShot(43000,
                               lambda: self.force_end_level(timer, cap, camera_label, level_cv_frame, frameForLevelCounters))
 
         detector = htm.handDetector()
@@ -153,6 +155,7 @@ class CreateLevel:
                             founded_label.setText("✓")
                             self.current_level += 1
                             if self.current_level == self.numberTasks:
+                                self.countdown_timer.stop()  # Зупиняємо таймер
                                 def end_level():
                                     if self.show_message_box():
                                         # Завершення рівня після показу повідомлення
@@ -162,6 +165,8 @@ class CreateLevel:
                                         self.current_level = 0
                                         self.errorAnswers = 0
                                         self.uncheckButtons(frameForLevelCounters)
+                                        self.setTime_remaining(1)
+                                        self.countdown_timer.start()
 
                                 QTimer.singleShot(1000, end_level) # Затримка 3 секунди (3000 мс)
 
@@ -188,9 +193,35 @@ class CreateLevel:
         timer.timeout.connect(update_frame)
         timer.start(30)  # Оновлюємо кадри кожні 30 мс (~33 fps)
 
+        # --------------------------------------------------------------------------------------------------------------Мітка для відображення таймеру
 
+        # Додаємо QLabel для відображення таймера
+        timer_label = QLabel(level_cv_frame)
+        timer_label.setGeometry(300, 26, 210, 50)
+        timer_label.setAlignment(Qt.AlignCenter)
+        timer_label.setFont(QFont("Arial", 18, QFont.Bold))
+        timer_label.setStyleSheet("""
+            QLabel {
+                background-color: #DAFFDF; 
+                color: black;
+                border-radius: 10px;
+                border: 2px solid blue;
+            }
+        """)
 
-        # ------------------------------------------------------------------------------------------------------------------Кнопка для повернення на сторінку вибору рівня
+        # Встановлюємо початковий час залежно від рівня
+        if self.current_game_level == "button_level_4" or self.current_game_level == "button_level_5" or self.current_game_level == "button_level_6":
+            timer_label.show()
+            self.setTime_remaining()
+
+        # Оновлення відображення часу
+        timer_label.setText(f"Час: {self.time_remaining} сек")
+
+        # Таймер для оновлення часу щосекунди
+        self.countdown_timer.timeout.connect(lambda: self.update_timer(timer_label))
+        self.countdown_timer.start(1000)  # Оновлення кожну секунду
+
+        # --------------------------------------------------------------------------------------------------------------Кнопка для повернення на сторінку вибору рівня
 
         button_return = QPushButton(level_cv_frame)
         button_return.setGeometry(48, 23, 60, 60)
@@ -251,8 +282,29 @@ class CreateLevel:
     def force_end_level(self, timer, cap, camera_label, level_cv_frame, frameForLevelCounters):
         """Примусове завершення рівня після N секунд"""
         print("Час вийшов! Рівень закрито.")
+        self.countdown_timer.stop()  # Зупиняємо таймер
         self.stop_camera(timer, cap, camera_label)
         self.closingCVframe(level_cv_frame, frameForLevelCounters)
+
+    # Метод для оновлення таймеру
+    def update_timer(self, timer_label):
+        """Оновлює таймерний відлік на екрані"""
+        if self.time_remaining <= 10:
+            timer_label.setFont(QFont("Arial", 20, QFont.Bold))
+            timer_label.setStyleSheet("""
+                        QLabel {
+                            background-color: #DAFFDF; 
+                            color: red;
+                            border-radius: 10px;
+                            border: 2px solid blue;
+                        }
+                    """)
+        if self.time_remaining > 0:
+            self.time_remaining -= 1
+            timer_label.setText(f"Час: {self.time_remaining} сек")
+        else:
+            self.countdown_timer.stop()  # Зупиняємо таймер після завершення часу
+            timer_label.setText("Час вийшов!")
 
     # Повернення стану кнопок контейнера для відображення кількості завдань
     def uncheckButtons(self, frameForLevelCounters):
@@ -323,6 +375,7 @@ class CreateLevel:
         self.current_level += 1
         self.errorAnswers += 1
         if self.current_level == self.numberTasks:
+            self.countdown_timer.stop()  # Зупиняємо таймер
             def end_level():
                 if self.show_message_box():
                     # Завершення рівня після показу повідомлення
@@ -332,8 +385,19 @@ class CreateLevel:
                     self.current_level = 0
                     self.errorAnswers = 0
                     self.uncheckButtons(frameForLevelCounters)
+                    self.setTime_remaining(1)
+                    self.countdown_timer.start()
 
             QTimer.singleShot(1000, end_level)  # Затримка 3 секунди (3000 мс)
+
+    def setTime_remaining(self, timeadd = 0):
+        # Встановлюємо початковий час залежно від рівня
+        if self.current_game_level == "button_level_4":
+            self.time_remaining = 90 + timeadd
+        elif self.current_game_level == "button_level_5":
+            self.time_remaining = 65 + timeadd
+        elif self.current_game_level == "button_level_6":
+            self.time_remaining = 40 + timeadd
 
     # Функція для відображення повідомлення про завершення рівня
     def show_message_box(self):
