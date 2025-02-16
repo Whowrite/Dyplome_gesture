@@ -58,6 +58,24 @@ class handDetector():
 
         return lmList
 
+    def findPositionsBothHands(self, img, Draw=True):
+        hands_positions = []  # Список для зберігання точок обох рук
+
+        if self.result.multi_hand_landmarks:
+            for handLms in self.result.multi_hand_landmarks:
+                lmList = []
+                for id, lm in enumerate(handLms.landmark):
+                    h, w, c = img.shape
+                    cx, cy = int(lm.x * w), int(lm.y * h)
+                    lmList.append([id, cx, cy])
+
+                    if Draw:
+                        cv2.circle(img, (cx, cy), 10, (255, 0, 255), cv2.FILLED)
+
+                hands_positions.append(lmList)  # Додаємо координати поточної руки
+
+        return hands_positions  # Повертає список списків, де кожен список — це точки однієї руки
+
     #-------------------------------------------------------------------------------------------------------------------Вирахоовує кількість піднятих пальців
     def fingerUpCount(self, lmList):
         tipIds = [4, 8, 12, 16, 20]
@@ -103,6 +121,26 @@ class handDetector():
         tempArray = []
         for pointId in pointIds:
             for lm in lmList:
+                if lm[0] == pointId:  # Якщо ID співпадає
+                    tempArray.append(lm)
+                    break
+        return tempArray
+
+    def extractPointsBothHands(self, lmList, pointIds):
+        """
+        Знаходить потрібні точки за їхніми ID з lmList.
+
+        :param lmList: Список всіх точок руки.
+        :param pointIds: Список ID точок, які потрібно знайти.
+        :return: Тимчасовий масив з потрібними точками.
+        """
+        tempArray = []
+        for pointId in pointIds:
+            for lm in lmList[0]:
+                if lm[0] == pointId:  # Якщо ID співпадає
+                    tempArray.append(lm)
+                    break
+            for lm in lmList[1]:
                 if lm[0] == pointId:  # Якщо ID співпадає
                     tempArray.append(lm)
                     break
@@ -154,10 +192,10 @@ class handDetector():
                     matches = False
                     break
             if matches:
-                # print("Жест повністю співпадає!")
+                print("Жест повністю співпадає!")
                 return True
             else:
-                # print("Жест не співпадає.")
+                print("Жест не співпадає.")
                 return False
         else:
             print("Розмір масивів не співпадає.")
@@ -169,7 +207,7 @@ def main():
 
     # Захват видео с камеры
     cap = cv2.VideoCapture(0)
-    detector = handDetector(cl.gesture_peace_right, cl.gesture_peace_left)
+    detector = handDetector(cl.both_gesture_tutupapa_right, cl.both_gesture_tutupapa_left)
 
     # Список точок, які потрібно знайти (IDs)
     targetPoints = [4, 8, 12, 16, 20]
@@ -182,10 +220,17 @@ def main():
 
         # Отримання зображення в RGB
         img = detector.findHands(img, Draw=False)
-        lmList = detector.findPosition(img, Draw=False)
-        if len(lmList) != 0:
+
+        lmLists = detector.findPositionsBothHands(img, Draw=False)
+
+        if len(lmLists) == 2:
+            # rightHand = lmLists[0]  # Перша рука (залежить від того, яку руку модель розпізнала першою)
+            # leftHand = lmLists[1]  # Друга рука
+            # print("Права рука:", rightHand)
+            # print("Ліва рука:", leftHand)
+
             # Знаходимо потрібні точки
-            tempArray = detector.extractPoints(lmList, targetPoints)
+            tempArray = detector.extractPointsBothHands(lmLists, targetPoints)
             print(tempArray)
             # Порівнюємо з gesture_oke
             detector.compareGestures(tempArray)

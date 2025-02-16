@@ -22,6 +22,21 @@ gesture_wait_left = np.array([[4, 210, 306], [8, 231, 209], [12, 254, 185], [16,
 gesture_peace_right = np.array([[4, 184, 314], [8, 268, 180], [12, 221, 153], [16, 190, 384], [20, 165, 402]])
 gesture_peace_left = np.array([[4, 360, 313], [8, 285, 201], [12, 344, 178], [16, 351, 375], [20, 371, 390]])
 
+both_gesture_heart_left = np.array([[4, 313, 351], [4, 295, 359], [8, 314, 262], [8, 318, 270], [12, 315, 265], [12, 316, 264], [16, 317, 268], [16, 310, 267], [20, 323, 263], [20, 300, 278]])
+both_gesture_heart_right = np.array([[4, 295, 359], [4, 313, 351], [8, 318, 270], [8, 314, 262], [12, 316, 264], [12, 315, 265], [16, 310, 267], [16, 317, 268], [20, 300, 278], [20, 323, 263]])
+
+both_gesture_request_left = np.array([[4, 450, 279], [4, 143, 257], [8, 347, 180], [8, 198, 174], [12, 322, 174], [12, 227, 163], [16, 303, 182], [16, 247, 172], [20, 286, 203], [20, 264, 206]])
+both_gesture_request_right = np.array([[4, 143, 257], [4, 450, 279], [8, 198, 174], [8, 347, 180], [12, 227, 163], [12, 322, 174], [16, 247, 172], [16, 303, 182], [20, 264, 206], [20, 286, 203]])
+
+both_gesture_uwu_left = np.array([[4, 183, 277], [4, 421, 235], [8, 282, 367], [8, 300, 362], [12, 170, 375], [12, 414, 353], [16, 160, 402], [16, 423, 376], [20, 153, 424], [20, 431, 397]])
+both_gesture_uwu_right = np.array([[4, 421, 235], [4, 183, 277], [8, 300, 362], [8, 282, 367], [12, 414, 353], [12, 170, 375], [16, 423, 376], [16, 160, 402], [20, 431, 397], [20, 153, 424]])
+
+both_gesture_camera_right = np.array([[4, 282, 258], [4, 417, 215], [8, 418, 170], [8, 256, 300], [12, 249, 137], [12, 381, 326], [16, 240, 121], [16, 384, 354], [20, 256, 100], [20, 392, 380]])
+both_gesture_camera_left = np.array([[4, 417, 215], [4, 282, 258], [8, 256, 300], [8, 418, 170], [12, 381, 326], [12, 249, 137], [16, 384, 354], [16, 240, 121], [20, 392, 380], [20, 256, 100]])
+
+both_gesture_tutupapa_left = np.array([[4, 152, 264], [4, 322, 167], [8, 34, 320], [8, 188, 109], [12, 19, 357], [12, 141, 124], [16, 26, 387], [16, 118, 163], [20, 51, 420], [20, 116, 211]])
+both_gesture_tutupapa_right = np.array([[4, 322, 167], [4, 152, 264], [8, 188, 109], [8, 34, 320], [12, 141, 124], [12, 19, 357], [16, 118, 163], [16, 26, 387], [20, 116, 211], [20, 51, 420]])
+
 def getlevelarray(card_name, current_game_level):
     if card_name == "Жести однією рукою":
         if current_game_level == "button_level_1" or current_game_level == "button_level_4":
@@ -50,7 +65,11 @@ def getlevelarray(card_name, current_game_level):
             ]
     elif card_name == "Жести двума руками":
         if current_game_level == "button_level_1" or current_game_level == "button_level_4":
-            return
+            return [
+                    [both_gesture_heart_right, both_gesture_heart_left, cv2.imread(f'FingerImages/both_gesture_heart.jpg')],
+                    [both_gesture_uwu_right, both_gesture_uwu_left, cv2.imread(f'FingerImages/both_gesture_uwu.jpg')],
+                    [both_gesture_camera_right, both_gesture_camera_left, cv2.imread(f'FingerImages/both_gesture_camera.jpg')]
+            ]
         elif current_game_level == "button_level_2" or current_game_level == "button_level_5":
             return
         else:

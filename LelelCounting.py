@@ -17,6 +17,7 @@ class CreateLevel:
         self.errorAnswers = 0
         self.time_remaining = 0
         self.countdown_timer = QTimer()
+        self.countpoints = 0
 
     # Функція-обробник кнопки для створення рівня
     def create_new_level_click(self, current_game_level, card_name, level_cv_frame):
@@ -122,7 +123,13 @@ class CreateLevel:
             ret, img = cap.read()
             if ret:
                 frame = detector.findHands(img, Draw=False)
-                lmList = detector.findPosition(frame, Draw=False)
+                lmList = []
+                if card_name == "Жести однією рукою":
+                    lmList = detector.findPosition(frame, Draw=False)
+                    self.countpoints = 21
+                elif card_name == "Жести двума руками":
+                    lmList = detector.findPositionsBothHands(frame, Draw=False)
+                    self.countpoints = 2
 
                 if self.current_level != self.numberTasks:
                     detector.setGesture(self.levelGestures[self.current_level][1], self.levelGestures[self.current_level][0])
@@ -131,11 +138,16 @@ class CreateLevel:
                         h, w, c = gesture_img.shape  # Отримуємо розміри
                         frame[0:h, 0:w] = gesture_img  # Вставляємо зображення
 
-                    if len(lmList) != 0:
+                    if len(lmList) == self.countpoints:
                         # Список точок, які потрібно знайти (IDs)
                         targetPoints = [4, 8, 12, 16, 20]
                         # Знаходимо потрібні точки
-                        tempArray = detector.extractPoints(lmList, targetPoints)
+                        tempArray = []
+                        if card_name == "Жести однією рукою":
+                            tempArray = detector.extractPoints(lmList, targetPoints)
+                        elif card_name == "Жести двума руками":
+                            tempArray = detector.extractPointsBothHands(lmList, targetPoints)
+
                         # print(tempArray)
 
                         # Порівнюємо з жестом
