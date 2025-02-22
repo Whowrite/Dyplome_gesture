@@ -207,7 +207,7 @@ def main():
 
     # Захват видео с камеры
     cap = cv2.VideoCapture(0)
-    detector = handDetector(cl.both_gesture_tutupapa_right, cl.both_gesture_tutupapa_left)
+    detector = handDetector(cl.both_gesture_school_right, cl.both_gesture_school_left)
 
     # Список точок, які потрібно знайти (IDs)
     targetPoints = [4, 8, 12, 16, 20]

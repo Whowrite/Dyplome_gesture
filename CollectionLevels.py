@@ -37,6 +37,12 @@ both_gesture_camera_left = np.array([[4, 417, 215], [4, 282, 258], [8, 256, 300]
 both_gesture_tutupapa_left = np.array([[4, 152, 264], [4, 322, 167], [8, 34, 320], [8, 188, 109], [12, 19, 357], [12, 141, 124], [16, 26, 387], [16, 118, 163], [20, 51, 420], [20, 116, 211]])
 both_gesture_tutupapa_right = np.array([[4, 322, 167], [4, 152, 264], [8, 188, 109], [8, 34, 320], [12, 141, 124], [12, 19, 357], [16, 118, 163], [16, 26, 387], [20, 116, 211], [20, 51, 420]])
 
+both_gesture_doubleoke_left = np.array([[4, 246, 263], [4, 277, 255], [8, 267, 242], [8, 244, 280], [12, 326, 171], [12, 166, 316], [16, 318, 102], [16, 146, 381], [20, 261, 50], [20, 160, 428]])
+both_gesture_doubleoke_right = np.array([[4, 277, 255], [4, 246, 263], [8, 244, 280], [8, 267, 242], [12, 166, 316], [12, 326, 171], [16, 146, 381], [16, 318, 102], [20, 160, 428], [20, 261, 50]])
+
+both_gesture_school_left = np.array([[4, 290, 338], [4, 336, 331], [8, 289, 205], [8, 351, 205], [12, 195, 317], [12, 445, 313], [16, 169, 322], [16, 473, 316], [20, 152, 321], [20, 488, 313]])
+both_gesture_school_right = np.array([[4, 336, 331], [4, 290, 338], [8, 351, 205], [8, 289, 205], [12, 445, 313], [12, 195, 317], [16, 473, 316], [16, 169, 322], [20, 488, 313], [20, 152, 321]])
+
 def getlevelarray(card_name, current_game_level):
     if card_name == "Жести однією рукою":
         if current_game_level == "button_level_1" or current_game_level == "button_level_4":
@@ -71,9 +77,23 @@ def getlevelarray(card_name, current_game_level):
                     [both_gesture_camera_right, both_gesture_camera_left, cv2.imread(f'FingerImages/both_gesture_camera.jpg')]
             ]
         elif current_game_level == "button_level_2" or current_game_level == "button_level_5":
-            return
+            return [
+                    [both_gesture_tutupapa_right, both_gesture_tutupapa_left, cv2.imread(f'FingerImages/both_gesture_tutupapa.jpg')],
+                    [both_gesture_request_right, both_gesture_request_left, cv2.imread(f'FingerImages/both_gesture_request.jpg')],
+                    [both_gesture_heart_right, both_gesture_heart_left, cv2.imread(f'FingerImages/both_gesture_heart.jpg')],
+                    [both_gesture_doubleoke_right, both_gesture_doubleoke_left, cv2.imread(f'FingerImages/both_gesture_doubleoke.jpg')],
+                    [both_gesture_uwu_right, both_gesture_uwu_left, cv2.imread(f'FingerImages/both_gesture_uwu.jpg')]
+            ]
         else:
-            return
+            return [
+                    [both_gesture_school_right, both_gesture_school_left, cv2.imread(f'FingerImages/both_gesture_school.jpg')],
+                    [both_gesture_tutupapa_right, both_gesture_tutupapa_left, cv2.imread(f'FingerImages/both_gesture_tutupapa.jpg')],
+                    [both_gesture_camera_right, both_gesture_camera_left, cv2.imread(f'FingerImages/both_gesture_camera.jpg')],
+                    [both_gesture_uwu_right, both_gesture_uwu_left, cv2.imread(f'FingerImages/both_gesture_uwu.jpg')],
+                    [both_gesture_doubleoke_right, both_gesture_doubleoke_left, cv2.imread(f'FingerImages/both_gesture_doubleoke.jpg')],
+                    [both_gesture_heart_right, both_gesture_heart_left, cv2.imread(f'FingerImages/both_gesture_heart.jpg')],
+                    [both_gesture_request_right, both_gesture_request_left, cv2.imread(f'FingerImages/both_gesture_request.jpg')]
+            ]
     elif card_name == "Міміка обличчя":
         if current_game_level == "button_level_1" or current_game_level == "button_level_4":
             return
