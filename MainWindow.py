@@ -1,11 +1,11 @@
 import sys
 import mediapipe as mp
 from PyQt5.QtWidgets import QApplication, QLabel, QWidget, QMainWindow, QPushButton, QScrollArea, QFrame, QHBoxLayout, \
-    QStyle
+    QGraphicsOpacityEffect
 from PyQt5.QtGui import QImage, QPixmap, QFont
 from PyQt5.QtCore import QTimer, Qt
 from functools import partial
-import LelelCounting
+import LelelCounting, SettingsModule, RebuildsComponents
 
 current_game_level = "Undefined123"
 
@@ -21,6 +21,35 @@ def mainWindow():
                     background-color: #DAFFDF; /* Колір вікна */
                 }
             """)
+
+    # ------------------------------------------------------------------------------------------------------------------Фрейм Налаштувань
+
+    settings_frame = QFrame(window)
+    # settings_frame.setGeometry(48, 23, 390, 840)
+    settings_frame.setGeometry(0, 0, 438, 863)
+    settings_frame.hide()
+    settings_frame.setStyleSheet("""
+                    QFrame {
+                        background-color: #9EFFA5; /* Фон картки #9EFFA5; */
+                        border-radius: 10px; /* Закруглені кути */
+                    }
+                """)
+
+    # ------------------------------------------------------------------------------------------------------------------Фрейм Прозорий
+
+    unvisible_frame = RebuildsComponents.ClickableFrame(window)
+    unvisible_frame.setGeometry(0, 0, 1315, 917)
+    unvisible_frame.hide()
+    unvisible_frame.setStyleSheet("""
+                        QFrame {
+                            background-color: #8A8A8A; /* Фон картки #9EFFA5; */
+                            border-radius: 10px; /* Закруглені кути */
+                        }
+                    """)
+    opacity_effect = QGraphicsOpacityEffect()
+    opacity_effect.setOpacity(0.4)
+
+    unvisible_frame.setGraphicsEffect(opacity_effect)
 
     # ------------------------------------------------------------------------------------------------------------------Кнопка Налаштувань
 
@@ -46,6 +75,11 @@ def mainWindow():
                 background-color: #1f618d; /* Колір кнопки при натисканні */
             }
         """)
+
+    settingsModule = SettingsModule.SettingsModule()
+
+    # Підключення сигналу "clicked" до обробника
+    button_settings.clicked.connect(lambda: settingsModule.show_settings(settings_frame, unvisible_frame))
 
     # ------------------------------------------------------------------------------------------------------------------Назва програми
 
@@ -177,6 +211,8 @@ def mainWindow():
     select_Level.raise_()
     title_window.raise_()
     button_help.raise_()
+    unvisible_frame.raise_()
+    settings_frame.raise_()
 
     # ------------------------------------------------------------------------------------------------------------------Закриття програми
     window.show()
