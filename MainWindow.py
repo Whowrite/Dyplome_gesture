@@ -2,8 +2,8 @@ import sys
 import mediapipe as mp
 from PyQt5.QtWidgets import QApplication, QLabel, QWidget, QMainWindow, QPushButton, QScrollArea, QFrame, QHBoxLayout, \
     QGraphicsOpacityEffect
-from PyQt5.QtGui import QImage, QPixmap, QFont
-from PyQt5.QtCore import QTimer, Qt
+from PyQt5.QtGui import QImage, QPixmap, QFont, QIcon, QTransform
+from PyQt5.QtCore import QTimer, Qt, QSize
 from functools import partial
 import LelelCounting, SettingsModule, RebuildsComponents
 
@@ -13,7 +13,7 @@ def mainWindow():
     app = QApplication(sys.argv)
     window = QMainWindow()
 
-    window.setWindowTitle("Window")
+    window.setWindowTitle("ToTrainYourNeurons")
     window.setGeometry(250, 100, 1315, 917)
 
     window.setStyleSheet("""
@@ -54,19 +54,22 @@ def mainWindow():
     # ------------------------------------------------------------------------------------------------------------------Кнопка Налаштувань
 
     button_settings = QPushButton(window)
-    button_settings.setGeometry(48, 23, 215, 55)
-    button_settings.setText("⚙️Settings")
+    button_settings.setGeometry(48, 23, 60, 60)
+    # Завантажуємо іконку
+    icon = QIcon("FingerImages/settings.png")
+    button_settings.setIcon(icon)
+    button_settings.setIconSize(QSize(50, 50))  # Налаштовуємо розмір іконки (50x50 пікселів)
 
     font = QFont()
     font.setBold(True)
-    font.setPointSize(18)
+    font.setPointSize(14)
     button_settings.setFont(font)
 
     button_settings.setStyleSheet("""
             QPushButton {
                 background-color: #9EFFA5; /* Колір кнопки */
                 color: black; /* Колір тексту */
-                border-radius: 10px; /* Закруглення кутів */
+                border-radius: 30px; /* Закруглення кутів */
             }
             QPushButton:hover {
                 background-color: #5dade2; /* Колір кнопки при наведенні */
@@ -84,12 +87,12 @@ def mainWindow():
     # ------------------------------------------------------------------------------------------------------------------Назва програми
 
     title_window = QLabel(window)
-    title_window.setGeometry(568, 23, 330, 55)
-    title_window.setText("ToTrainYourNeurons")
+    title_window.setGeometry(468, 23, 380, 55)
+    title_window.setText("Потренуємо ваші нейрони")
 
     font = QFont()
     font.setBold(True)
-    font.setPointSize(18)
+    font.setPointSize(16)
     title_window.setFont(font)
 
     title_window.setFrameShape(QLabel.StyledPanel)
@@ -117,7 +120,7 @@ def mainWindow():
     button_help.setStyleSheet("""
                 QPushButton {
                     background-color: #9EFFA5; /* Колір кнопки */
-                    color: black; /* Колір тексту */
+                    color: #eb8934; /* Колір тексту */
                     border-radius: 30px; /* Закруглення кутів */
                 }
                 QPushButton:hover {
@@ -231,7 +234,7 @@ def visible_select_level_click(select_Level, title_window, button_help, card):
     button_help.setStyleSheet("""
                     QPushButton {
                         background-color: #DAFFDF; /* Колір кнопки */
-                        color: black; /* Колір тексту */
+                        color: #eb8934; /* Колір тексту */
                         border-radius: 30px; /* Закруглення кутів */
                     }
                     QPushButton:hover {
@@ -248,7 +251,19 @@ def visible_select_level_click(select_Level, title_window, button_help, card):
 
     button_return = QPushButton(select_Level)
     button_return.setGeometry(48, 23, 60, 60)
-    button_return.setText("<-")
+    # button_return.setText("<-")
+
+    # Завантажуємо зображення в QPixmap
+    pixmap = QPixmap("FingerImages/right-arrow.png")  # Вкажіть шлях до вашого зображення
+
+    # Обертаємо зображення
+    transform = QTransform().rotate(180)
+    rotated_pixmap = pixmap.transformed(transform)
+
+    # Завантажуємо іконку
+    icon = QIcon(rotated_pixmap)
+    button_return.setIcon(icon)
+    button_return.setIconSize(QSize(50, 50))  # Налаштовуємо розмір іконки (50x50 пікселів)
     button_return.show()
 
     font = QFont()
@@ -259,7 +274,7 @@ def visible_select_level_click(select_Level, title_window, button_help, card):
     button_return.setStyleSheet("""
                         QPushButton {
                             background-color: #DAFFDF; /* Колір кнопки */
-                            color: black; /* Колір тексту */
+                            color: #eb8934; /* Колір тексту */
                             border-radius: 30px; /* Закруглення кутів */
                         }
                         QPushButton:hover {
@@ -413,7 +428,7 @@ def hide_select_level_click(select_Level, title_window, button_help):
     button_help.setStyleSheet("""
                     QPushButton {
                         background-color: #9EFFA5; /* Колір кнопки */
-                        color: black; /* Колір тексту */
+                        color: #eb8934; /* Колір тексту */
                         border-radius: 30px; /* Закруглення кутів */
                     }
                     QPushButton:hover {

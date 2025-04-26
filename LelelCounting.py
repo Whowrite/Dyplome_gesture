@@ -248,7 +248,7 @@ class CreateLevel:
         button_return.setStyleSheet("""
                                 QPushButton {
                                     background-color: #DAFFDF; /* Колір кнопки */
-                                    color: black; /* Колір тексту */
+                                    color: #eb8934; /* Колір тексту */
                                     border-radius: 30px; /* Закруглення кутів */
                                 }
                                 QPushButton:hover {
