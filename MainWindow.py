@@ -1,11 +1,11 @@
 import sys
 import mediapipe as mp
 from PyQt5.QtWidgets import QApplication, QLabel, QWidget, QMainWindow, QPushButton, QScrollArea, QFrame, QHBoxLayout, \
-    QGraphicsOpacityEffect
+    QGraphicsOpacityEffect, QMessageBox
 from PyQt5.QtGui import QImage, QPixmap, QFont, QIcon, QTransform
 from PyQt5.QtCore import QTimer, Qt, QSize
 from functools import partial
-import LelelCounting, SettingsModule, RebuildsComponents
+import LelelCounting, SettingsModule, RebuildsComponents, UserLevelsModule
 
 current_game_level = "Undefined123"
 
@@ -157,15 +157,15 @@ def mainWindow():
     layout.setContentsMargins(10, 10, 10, 10)  # Відступи між елементами
     layout.setSpacing(30)  # Проміжки між картками
 
-    titles_cards = ["Жести однією рукою", "Жести двума руками", "Міміка обличчя", "Користувацький рівень"]
+    titles_cards = ["Жести однією рукою", "Жести двума руками", "Користувацький рівень", "В розробці"]
     text_cards = ["💡 Мета: Ознайомлення з базовими жестами, такими як вказування, махання, показування знаків.",
 
                   "💡 Мета: Вивчення жестів для взаємодії з великими об'єктами, передачі складних команд або вираження емоцій.",
 
-                  "💡 Мета: Навчання розпізнаванню ключових емоцій, таких як радість, здивування, гнів і сум.\n",
+                  "\n💡 Мета: Дати можливість користувачам створювати унікальні жести чи міміку для персональних сценаріїв.",
 
-                  "💡 Мета: Дати можливість користувачам створювати унікальні жести чи міміку для персональних сценаріїв."]
-    images_cards = ["FingerImages/1.jpg", "FingerImages/2.jpg", "FingerImages/3.jpg", "FingerImages/4.jpg"]
+                  ""]
+    images_cards = ["FingerImages/1.jpg", "FingerImages/2.jpg", "FingerImages/3.jpg", "FingerImages/InDevelopment.png"]
 
     # Додавання "карток" у контейнер
     for i in range(4):  # 4 карток
@@ -191,7 +191,12 @@ def mainWindow():
                 }
             """)
         # Підключення сигналу "clicked" до обробника
-        button_start.clicked.connect(partial(visible_select_level_click, select_Level, title_window, button_help, card))
+        if not card.objectName() == "Користувацький рівень":
+            button_start.clicked.connect(
+                partial(visible_select_level_click, select_Level, title_window, button_help, card))
+        else:
+            button_start.clicked.connect(
+                partial(visible_select_levelForUserLevels_click, select_Level, title_window, button_help, card))
 
         # --------------------------------------------------------------------------------------------------------------Кінець картки
         layout.addWidget(card)  # Додаємо картку у макет
@@ -223,6 +228,18 @@ def mainWindow():
 
 #Функція-обробник кнопки для відображення компонентів фрейму вибірки рівня
 def visible_select_level_click(select_Level, title_window, button_help, card):
+    for widget in select_Level.findChildren(QWidget):
+        widget.deleteLater()
+    if card.objectName() == "В розробці":
+        # Створюємо повідомлення
+        msg_box = QMessageBox()
+        msg_box.setIcon(QMessageBox.Information)
+        msg_box.setWindowTitle("Повідомлення")
+        msg_box.setText("Вибачте, але рівень ще в стадії розробки😅")
+        # Відображаємо повідомлення
+        msg_box.exec_()
+        return False
+
     select_Level.show()
     title_window.setStyleSheet("""
                 QLabel {
@@ -470,7 +487,10 @@ def create_card(title_text, description_text, image_path, parent=None):
 
     # ------------------------------------------------------------------------------------------------------------------Фото картки
     image_label = QLabel(card)
-    image_label.setGeometry(70, 90 + 100, 250, 170)
+    if not card.objectName() == "В розробці":
+        image_label.setGeometry(70, 90 + 100, 250, 170)
+    else:
+        image_label.setGeometry(70, 90 + 150, 250, 170)
     pixmap = QPixmap(image_path)
     image_label.setPixmap(pixmap)
     image_label.setScaledContents(True)
@@ -603,6 +623,117 @@ def select_level_click(current_button_level, level_status):
         for child in parent_frame.findChildren(QPushButton):
             child.setEnabled(True)
         current_game_level = "Undefined"
+
+#Функція-обробник кнопки для відображення компонентів фрейму "Користувацький рівень"
+def visible_select_levelForUserLevels_click(select_Level, title_window, button_help, card):
+    for widget in select_Level.findChildren(QWidget):
+        widget.deleteLater()
+    select_Level.show()
+    title_window.setStyleSheet("""
+                    QLabel {
+                        background-color: #DAFFDF; /* Колір фону */
+                        color: black; /* Колір тексту */
+                        border-radius: 10px; /* Закруглення кутів */
+                    }
+                """)
+    button_help.setStyleSheet("""
+                        QPushButton {
+                            background-color: #DAFFDF; /* Колір кнопки */
+                            color: #eb8934; /* Колір тексту */
+                            border-radius: 30px; /* Закруглення кутів */
+                        }
+                        QPushButton:hover {
+                            background-color: #5dade2; /* Колір кнопки при наведенні */
+                        }
+                        QPushButton:pressed {
+                            background-color: #1f618d; /* Колір кнопки при натисканні */
+                        }
+                    """)
+
+    duplicate_card_to_frame(card, select_Level)
+
+    # ------------------------------------------------------------------------------------------------------------------Кнопка для повернення на головну сторінку
+
+    button_return = QPushButton(select_Level)
+    button_return.setGeometry(48, 23, 60, 60)
+    # button_return.setText("<-")
+
+    # Завантажуємо зображення в QPixmap
+    pixmap = QPixmap("FingerImages/right-arrow.png")  # Вкажіть шлях до вашого зображення
+
+    # Обертаємо зображення
+    transform = QTransform().rotate(180)
+    rotated_pixmap = pixmap.transformed(transform)
+
+    # Завантажуємо іконку
+    icon = QIcon(rotated_pixmap)
+    button_return.setIcon(icon)
+    button_return.setIconSize(QSize(50, 50))  # Налаштовуємо розмір іконки (50x50 пікселів)
+    button_return.show()
+
+    font = QFont()
+    font.setBold(True)
+    font.setPointSize(18)
+    button_return.setFont(font)
+
+    button_return.setStyleSheet("""
+                            QPushButton {
+                                background-color: #DAFFDF; /* Колір кнопки */
+                                color: #eb8934; /* Колір тексту */
+                                border-radius: 30px; /* Закруглення кутів */
+                            }
+                            QPushButton:hover {
+                                background-color: #5dade2; /* Колір кнопки при наведенні */
+                            }
+                            QPushButton:pressed {
+                                background-color: #1f618d; /* Колір кнопки при натисканні */
+                            }
+                        """)
+    button_return.clicked.connect(
+        partial(hide_select_level_click, select_Level, title_window, button_help))
+
+    # ------------------------------------------------------------------------------------------------------------------Фрейм для відображення кнопок
+
+    scenario = QFrame(select_Level)
+    scenario.setGeometry(490, 100, 770, 750)
+    scenario.show()
+    scenario.setStyleSheet("""
+                        QFrame {
+                            background-color: #DAFFDF; /* Фон картки */
+                            border-radius: 10px; /* Закруглені кути */
+                        }
+                    """)
+
+    # ------------------------------------------------------------------------------------------------------------------Фрейм розпочати користувацький рівень
+
+    userLevel = UserLevelsModule.UserLevelsModule()
+    startUserLevel_frame = RebuildsComponents.ClickableFrame(scenario)
+    startUserLevel_frame.setGeometry(20, 20, 355, 710)
+    startUserLevel_frame.show()
+    startUserLevel_frame.setStyleSheet("""
+                            QFrame {
+                                background-color: red; /* Фон картки */
+                                border-radius: 10px; /* Закруглені кути */
+                            }
+                        """)
+    opacity_effect = QGraphicsOpacityEffect()
+    opacity_effect.setOpacity(0.4)
+    startUserLevel_frame.setGraphicsEffect(opacity_effect)
+    startUserLevel_frame.clicked.connect(lambda: userLevel.startUserLevel())
+
+    # ------------------------------------------------------------------------------------------------------------------Фрейм створення користувацього рівня
+
+    createUserLevel_frame = RebuildsComponents.ClickableFrame(scenario)
+    createUserLevel_frame.setGeometry(395, 20, 355, 710)
+    createUserLevel_frame.show()
+    createUserLevel_frame.setStyleSheet("""
+                            QFrame {
+                                background-color: blue; /* Фон картки */
+                                border-radius: 10px; /* Закруглені кути */
+                            }
+                        """)
+    createUserLevel_frame.setGraphicsEffect(opacity_effect)
+    createUserLevel_frame.clicked.connect(lambda: userLevel.createUserLevel())
 
 if __name__ == "__main__":
     mainWindow()

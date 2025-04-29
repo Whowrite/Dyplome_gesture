@@ -209,7 +209,7 @@ class CreateLevel:
 
         # Додаємо QLabel для відображення таймера
         timer_label = QLabel(level_cv_frame)
-        timer_label.setGeometry(300, 26, 210, 50)
+        timer_label.setGeometry(250, 26, 200, 50)
         timer_label.setAlignment(Qt.AlignCenter)
         timer_label.setFont(QFont("Arial", 18, QFont.Bold))
         timer_label.setStyleSheet("""
