@@ -4,11 +4,17 @@ from PyQt5.QtGui import QImage, QPixmap, QFont
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtCore import QTimer, Qt
 from functools import partial
+import os
+import time
 import RebuildsComponents
 
 class UserLevelsModule:
     def __init__(self):
-        self.variable = "??????"
+        self.numberGestures = 3
+        self.Time = 0
+        self.gestures = ["", "", ""]
+        self.selectPositionGesture = ""
+        self.frame_order_gesture = QFrame()
 
     def createUserLevel(self):
         print("UserLevelsModule: def createUserLevel()")
@@ -106,16 +112,16 @@ class UserLevelsModule:
 
         # ------------------------------------------------------------------------------------------------------------------Фрейм порядку жестів
 
-        frame_order_gesture = QFrame(modal)
-        frame_order_gesture.setGeometry(360, 100, 920, 300)
-        frame_order_gesture.setStyleSheet("""
+        self.frame_order_gesture = QFrame(modal)
+        self.frame_order_gesture.setGeometry(360, 100, 920, 300)
+        self.frame_order_gesture.setStyleSheet("""
                                 QFrame {
                                     background-color: #9EFFA5; /* Фон картки */
                                     border-radius: 10px; /* Закруглені кути */
                                 }
                             """)
         # Додавання "карток" у контейнер
-        self.add_CardsOfGestures(frame_order_gesture, 3)
+        self.add_CardsOfGestures(3)
 
         # ------------------------------------------------------------------------------------------------------------------Фрейм для визначення кількості жестів
 
@@ -176,7 +182,7 @@ class UserLevelsModule:
             }
         """)
 
-        combo_gestures.currentIndexChanged.connect(lambda: self.number_gestures_changed(combo_gestures.currentText(), frame_order_gesture))
+        combo_gestures.currentIndexChanged.connect(lambda: self.number_gestures_changed(combo_gestures.currentText()))
 
         # ------------------------------------------------------------------------------------------------------------------Фрейм для визначення ліміту часу
 
@@ -270,7 +276,7 @@ class UserLevelsModule:
                                     border-color: #1f618d; /* Колір кнопки при натисканні */
                                 }
                             """)
-        cleaning_frame.clicked.connect(partial(self.clear_frame_click))
+        cleaning_frame.clicked.connect(partial(self.clear_frame_click, modal))
 
         save_level_button = QPushButton(frame_control_buttons)
         save_level_button.setGeometry(460, 60, 280, 80)
@@ -292,16 +298,16 @@ class UserLevelsModule:
                             border-color: #1f618d; /* Колір кнопки при натисканні */
                         }
                     """)
-        save_level_button.clicked.connect(partial(self.save_UserLevel_click))
+        save_level_button.clicked.connect(partial(self.save_UserLevel_click, modal))
 
         modal.exec_()  # Запускаємо модальне вікно (блокує основне)
 
-    def add_CardsOfGestures(self, frame_order_gesture, number):
-        for widget in frame_order_gesture.findChildren(QWidget):
+    def add_CardsOfGestures(self, number):
+        for widget in self.frame_order_gesture.findChildren(QWidget):
             widget.deleteLater()
         N = 0
         for i in range(number):  # N карток
-            image_card = RebuildsComponents.ClickableLabel(frame_order_gesture)
+            image_card = RebuildsComponents.ClickableLabel(self.frame_order_gesture)
             if number == 3:
                 image_card.setGeometry(80 + N, 50, 200, 200)
                 N += 70 + 200
@@ -326,39 +332,135 @@ class UserLevelsModule:
             image_card.show()
 
     # Функція-обробник зміни кількості жестів рівня
-    def number_gestures_changed(self, selected_value, frame_order_gesture):
-        print(f"Вибрано кількість жестів: {selected_value}")
-        self.add_CardsOfGestures(frame_order_gesture, int(selected_value))
+    def number_gestures_changed(self, selected_value):
+        if self.selectPositionGesture != "":
+            for label in self.frame_order_gesture.findChildren(QLabel):
+                if label.objectName() == self.selectPositionGesture:
+                    label.setStyleSheet("""
+                                        QLabel {
+                                             background-color: #DAFFDF; /* Фон картки */
+                                             border-radius: 10px; /* Закруглені кути */
+                                            }
+                                        """)
+                    self.selectPositionGesture = ""
+                    break
+
+        self.selectPositionGesture = ""
+        self.numberGestures = int(selected_value)
+        if self.numberGestures == 3:
+            self.gestures = ["", "", ""]
+        elif self.numberGestures == 5:
+            self.gestures = ["", "", "", "", ""]
+        elif self.numberGestures == 7:
+            self.gestures = ["", "", "", "", "", "", ""]
+        print(f"Вибрано кількість жестів: {self.numberGestures}")
+        self.add_CardsOfGestures(self.numberGestures)
 
     # Функція-обробник зміни часу рівня
     def limit_time_changed(self, selected_value):
-        print(f"Встановлено ліміт часу: {selected_value}")
-        # Додайте тут вашу логіку обробки вибраного значення
+        self.Time = selected_value
+        print(f"Встановлено ліміт часу: {self.Time}")
 
     # Функція-обробник для очищення форми
-    def clear_frame_click(self):
+    def clear_frame_click(self, modal):
         print(f"Очищення форми:")
-        # Додайте тут вашу логіку
+        modal.close()
+        self.__init__()
+        self.createUserLevel()
 
     # Функція-обробник для збереження користувацького рівня
-    def save_UserLevel_click(self):
-        print(f"Збереження рівня:")
-        # Додайте тут вашу логіку
+    def save_UserLevel_click(self, modal):
+        for gest in self.gestures:
+            if gest == "":
+                print("Присутнє не заповнене поле порядку жестів")
+                # Створюємо повідомлення
+                msg_box = QMessageBox()
+                msg_box.setIcon(QMessageBox.Warning)  # Іконка: Information, Warning, Critical, Question
+                msg_box.setWindowTitle("Повідомлення")
+                msg_box.setText("Присутнє не заповнене поле порядку жестів!!!")
+                msg_box.exec_()
+                return
+
+        print(f"Збереження рівня: {self.gestures}")
+        print(f"Збереження рівня: {self.Time}")
+        print(f"Збереження рівня: {self.numberGestures}")
+
+        # Вказуємо директорію для збереження
+        save_directory = "UserLevels/"
+
+        # Створюємо директорію, якщо вона не існує
+        if not os.path.exists(save_directory):
+            os.makedirs(save_directory)
+
+        # Створюємо унікальну назву файлу з поточним часом
+        timestamp = time.strftime("%Y%m%d_%H%M%S")
+        filename = f"{save_directory}user_level_{timestamp}.txt"
+
+        # Дані для запису
+        data = [
+            f"Gestures: {self.gestures}",
+            f"Time: {self.Time}",
+            f"Number of Gestures: {self.numberGestures}"
+        ]
+
+        # Запис у файл
+        try:
+            with open(filename, 'w', encoding='utf-8') as file:
+                for line in data:
+                    file.write(line + '\n')
+            print(f"Дані збережено у файл: {filename}")
+        except Exception as e:
+            print(f"Помилка при збереженні файлу: {e}")
+
+        modal.close()
+        self.__init__()
 
     # Функція-обробник мітки для вибору жесту
     def on_gesture_click(self, image_path):
         # Зберігаємо шлях до обраного жесту
         print(f"Обраний жест: {image_path}")
+        if self.selectPositionGesture != "":
+            for label in self.frame_order_gesture.findChildren(QLabel):
+                if label.objectName() == self.selectPositionGesture:
+                    pixmap = QPixmap(image_path)
+                    label.setPixmap(pixmap)
+                    label.setScaledContents(True)
+                    N = int(label.objectName()[12])
+                    print(f"N = int(label.objectName()[12]) = {N}")
+                    self.gestures[N] = image_path
+                    break
 
-    # Функція-обробник мітки для видалення жесту з фрейму "порядок жестів"
+
+    # Функція-обробник мітки для редагування жесту з фрейму "порядок жестів"
     def order_gesture_click(self, image_card):
-        image_card.setStyleSheet("""
+        if image_card.objectName() == self.selectPositionGesture:
+            image_card.setStyleSheet("""
                                 QLabel {
                                     background-color: #DAFFDF; /* Фон картки */
                                     border-radius: 10px; /* Закруглені кути */
                                    }
                                 """)
-        print(f"Клік на: {image_card.objectName()}")
+            self.selectPositionGesture = ""
+        else:
+            if self.selectPositionGesture != "":
+                for label in self.frame_order_gesture.findChildren(QLabel):
+                    if label.objectName() == self.selectPositionGesture:
+                        label.setStyleSheet("""
+                                        QLabel {
+                                             background-color: #DAFFDF; /* Фон картки */
+                                             border-radius: 10px; /* Закруглені кути */
+                                            }
+                                        """)
+                        break
+            image_card.setStyleSheet("""
+                                QLabel {
+                                     background-color: #DAFFDF; /* Фон картки */
+                                     border-radius: 10px; /* Закруглені кути */
+                                     border: 5px solid red;
+                                    }
+                                """)
+            self.selectPositionGesture = image_card.objectName()
+        print(f"Клік на: {self.selectPositionGesture}")
 
 
     def startUserLevel(self):
