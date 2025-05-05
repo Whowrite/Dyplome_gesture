@@ -9,13 +9,16 @@ from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtCore import QTimer, Qt
 
 class CreateLevel:
-    def __init__(self):
+    def __init__(self, numberTasks = 0, Time = 0, UserGestures = []):
         self.current_level = 0
-        self.numberTasks = 0
+        self.numberTasks = numberTasks
         self.current_game_level = ""
-        self.levelGestures = []
+        if UserGestures != []:
+            self.levelGestures = Cl.getUserLevelArray(numberTasks, UserGestures)
+        else:
+            self.levelGestures = []
         self.errorAnswers = 0
-        self.time_remaining = 0
+        self.time_remaining = Time
         self.countdown_timer = QTimer()
         self.countpoints = 0
 
@@ -23,9 +26,10 @@ class CreateLevel:
     def create_new_level_click(self, current_game_level, card_name, level_cv_frame):
         print("Good luck: " + current_game_level)
         self.current_game_level = current_game_level
-        self.numberTasks = self.getNumTasks(current_game_level)
-        print("Good luck: " + card_name)
-        self.levelGestures = Cl.getlevelarray(card_name, current_game_level)
+        if not card_name == "Користувацький рівень":
+            self.numberTasks = self.getNumTasks()
+            print("Good luck: " + card_name)
+            self.levelGestures = Cl.getlevelarray(card_name, current_game_level)
         level_cv_frame.show()
 
         # ------------------------------------------------------------------------------------------------------------------Мітки для відображення рук
@@ -56,7 +60,7 @@ class CreateLevel:
 
         # ------------------------------------------------------------------------------------------------------------------Контейнер для відображення кількості завдань
 
-        paddingLeft = self.getPadding(current_game_level)
+        paddingLeft = self.getPadding()
         paddingCenter = 0
         for i in range(self.numberTasks):
             level_Counter = QLabel(frameForLevelCounters)
@@ -107,13 +111,13 @@ class CreateLevel:
         timer = QTimer()
 
         # Таймер на 90-40 секунд для автоматичного закриття рівня
-        if self.current_game_level == "button_level_4":
+        if self.current_game_level == "button_level_4" or (self.current_game_level == "Користувацький рівень" and self.time_remaining == 90):
             QTimer.singleShot(93000,
                                     lambda: self.force_end_level(timer, cap, camera_label, level_cv_frame, frameForLevelCounters))
-        elif self.current_game_level == "button_level_5":
+        elif self.current_game_level == "button_level_5" or (self.current_game_level == "Користувацький рівень" and self.time_remaining == 65):
             QTimer.singleShot(68000,
                               lambda: self.force_end_level(timer, cap, camera_label, level_cv_frame, frameForLevelCounters))
-        elif self.current_game_level == "button_level_6":
+        elif self.current_game_level == "button_level_6" or (self.current_game_level == "Користувацький рівень" and self.time_remaining == 40):
             QTimer.singleShot(43000,
                               lambda: self.force_end_level(timer, cap, camera_label, level_cv_frame, frameForLevelCounters))
 
@@ -124,15 +128,15 @@ class CreateLevel:
             if ret:
                 frame = detector.findHands(img, Draw=False)
                 lmList = []
-                if card_name == "Жести однією рукою":
-                    lmList = detector.findPosition(frame, Draw=False)
-                    self.countpoints = 21
-                elif card_name == "Жести двума руками":
-                    lmList = detector.findPositionsBothHands(frame, Draw=False)
-                    self.countpoints = 2
-
                 if self.current_level != self.numberTasks:
-                    detector.setGesture(self.levelGestures[self.current_level][1], self.levelGestures[self.current_level][0])
+                    if self.levelGestures[self.current_level][3] in Cl.oneHandGestures_list:
+                        lmList = detector.findPosition(frame, Draw=False)
+                        self.countpoints = 21
+                    elif self.levelGestures[self.current_level][3] in Cl.twoHandGestures_list:
+                        lmList = detector.findPositionsBothHands(frame, Draw=False)
+                        self.countpoints = 2
+                    detector.setGesture(self.levelGestures[self.current_level][1],
+                                        self.levelGestures[self.current_level][0])
                     gesture_img = self.levelGestures[self.current_level][2]
                     if gesture_img is not None:
                         h, w, c = gesture_img.shape  # Отримуємо розміри
@@ -143,9 +147,9 @@ class CreateLevel:
                         targetPoints = [4, 8, 12, 16, 20]
                         # Знаходимо потрібні точки
                         tempArray = []
-                        if card_name == "Жести однією рукою":
+                        if self.levelGestures[self.current_level][3] in Cl.oneHandGestures_list:
                             tempArray = detector.extractPoints(lmList, targetPoints)
-                        elif card_name == "Жести двума руками":
+                        elif self.levelGestures[self.current_level][3] in Cl.twoHandGestures_list:
                             tempArray = detector.extractPointsBothHands(lmList, targetPoints)
 
                         # print(tempArray)
@@ -222,7 +226,8 @@ class CreateLevel:
         """)
 
         # Встановлюємо початковий час залежно від рівня
-        if self.current_game_level == "button_level_4" or self.current_game_level == "button_level_5" or self.current_game_level == "button_level_6":
+        if (self.current_game_level == "button_level_4" or self.current_game_level == "button_level_5" or
+                self.current_game_level == "button_level_6") or (self.current_game_level == "Користувацький рівень" and self.time_remaining != 0):
             timer_label.show()
             self.setTime_remaining()
 
@@ -341,21 +346,21 @@ class CreateLevel:
         print("Camera stopped")
 
     # Функція для визначення кількоcті завдань від вибраного рівня
-    def getNumTasks(self, current_game_level):
-        if current_game_level == "button_level_1" or current_game_level == "button_level_4":
+    def getNumTasks(self):
+        if self.current_game_level == "button_level_1" or self.current_game_level == "button_level_4":
             return 3
-        elif current_game_level == "button_level_2" or current_game_level == "button_level_5":
+        elif self.current_game_level == "button_level_2" or self.current_game_level == "button_level_5":
             return 5
         else:
             return 7
 
     # Функція для визначення відступу між елементами контейнеру для відображення кількості завдань
-    def getPadding(self, current_game_level):
-        if current_game_level == "button_level_1" or current_game_level == "button_level_4":
+    def getPadding(self):
+        if self.numberTasks == 3:
             return 320
-        elif current_game_level == "button_level_2" or current_game_level == "button_level_5":
+        elif self.numberTasks == 5:
             return 240
-        else:
+        elif self.numberTasks == 7:
             return 160
 
     # Функція-обробник кнопки для дострокового завершення рівня
@@ -410,6 +415,8 @@ class CreateLevel:
             self.time_remaining = 65 + timeadd
         elif self.current_game_level == "button_level_6":
             self.time_remaining = 40 + timeadd
+        elif self.current_game_level == "Користувацький рівень":
+            self.time_remaining += timeadd
 
     # Функція для відображення повідомлення про завершення рівня
     def show_message_box(self):

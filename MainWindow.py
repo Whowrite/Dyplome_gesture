@@ -629,6 +629,17 @@ def visible_select_levelForUserLevels_click(select_Level, title_window, button_h
     for widget in select_Level.findChildren(QWidget):
         widget.deleteLater()
     select_Level.show()
+
+    level_cv_frame = QFrame(select_Level)
+    level_cv_frame.setGeometry(0, 0, 1315, 917)
+    level_cv_frame.hide()
+    level_cv_frame.setStyleSheet("""
+                        QFrame {
+                            background-color: #9EFFA5; /* Фон картки */
+                            border-radius: 10px; /* Закруглені кути */
+                        }
+                    """)
+
     title_window.setStyleSheet("""
                     QLabel {
                         background-color: #DAFFDF; /* Колір фону */
@@ -719,7 +730,7 @@ def visible_select_levelForUserLevels_click(select_Level, title_window, button_h
     opacity_effect = QGraphicsOpacityEffect()
     opacity_effect.setOpacity(0.4)
     startUserLevel_frame.setGraphicsEffect(opacity_effect)
-    startUserLevel_frame.clicked.connect(lambda: userLevel.startUserLevel())
+    startUserLevel_frame.clicked.connect(lambda: userLevel.startUserLevel(level_cv_frame))
 
     # ------------------------------------------------------------------------------------------------------------------Фрейм створення користувацього рівня
 
@@ -734,6 +745,8 @@ def visible_select_levelForUserLevels_click(select_Level, title_window, button_h
                         """)
     createUserLevel_frame.setGraphicsEffect(opacity_effect)
     createUserLevel_frame.clicked.connect(lambda: userLevel.createUserLevel())
+
+    level_cv_frame.raise_()
 
 if __name__ == "__main__":
     mainWindow()

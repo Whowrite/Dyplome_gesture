@@ -43,61 +43,110 @@ both_gesture_doubleoke_right = np.array([[4, 277, 255], [4, 246, 263], [8, 244, 
 both_gesture_school_left = np.array([[4, 290, 338], [4, 336, 331], [8, 289, 205], [8, 351, 205], [12, 195, 317], [12, 445, 313], [16, 169, 322], [16, 473, 316], [20, 152, 321], [20, 488, 313]])
 both_gesture_school_right = np.array([[4, 336, 331], [4, 290, 338], [8, 351, 205], [8, 289, 205], [12, 445, 313], [12, 195, 317], [16, 473, 316], [16, 169, 322], [20, 488, 313], [20, 152, 321]])
 
+# Словник для зіставлення назв файлів із жестами
+gesture_map = {
+    'gesture_oke.jpg': [gesture_oke_right, gesture_oke_left],
+    'gesture_peace.jpg': [gesture_peace_right, gesture_peace_left],
+    'gesture_wait.jpg': [gesture_wait_right, gesture_wait_left],
+    'gesture_butt.jpg': [gesture_butt_right, gesture_butt_left],
+    'gesture_jumbo.jpg': [gesture_jumbo_right, gesture_jumbo_left],
+    'gesture_fingers_crossed.jpg': [gesture_fingers_crossed_right, gesture_fingers_crossed_left],
+    'gesture_little_bit.jpg': [gesture_little_bit_right, gesture_little_bit_left],
+    'both_gesture_heart.jpg': [both_gesture_heart_right, both_gesture_heart_left],
+    'both_gesture_uwu.jpg': [both_gesture_uwu_right, both_gesture_uwu_left],
+    'both_gesture_camera.jpg': [both_gesture_camera_right, both_gesture_camera_left],
+    'both_gesture_tutupapa.jpg': [both_gesture_tutupapa_right, both_gesture_tutupapa_left],
+    'both_gesture_request.jpg': [both_gesture_request_right, both_gesture_request_left],
+    'both_gesture_doubleoke.jpg': [both_gesture_doubleoke_right, both_gesture_doubleoke_left],
+    'both_gesture_school.jpg': [both_gesture_school_right, both_gesture_school_left]
+}
+
+oneHandGestures_list = {
+    'FingerImages/gesture_oke.jpg',
+    'FingerImages/gesture_peace.jpg',
+    'FingerImages/gesture_wait.jpg',
+    'FingerImages/gesture_butt.jpg',
+    'FingerImages/gesture_jumbo.jpg',
+    'FingerImages/gesture_fingers_crossed.jpg',
+    'FingerImages/gesture_little_bit.jpg'
+}
+
+twoHandGestures_list = {
+    'FingerImages/both_gesture_heart.jpg',
+    'FingerImages/both_gesture_uwu.jpg',
+    'FingerImages/both_gesture_camera.jpg',
+    'FingerImages/both_gesture_tutupapa.jpg',
+    'FingerImages/both_gesture_request.jpg',
+    'FingerImages/both_gesture_doubleoke.jpg',
+    'FingerImages/both_gesture_school.jpg'
+}
+
 def getlevelarray(card_name, current_game_level):
     if card_name == "Жести однією рукою":
         if current_game_level == "button_level_1" or current_game_level == "button_level_4":
             return [
-                    [gesture_oke_right, gesture_oke_left, cv2.imread(f'FingerImages/gesture_oke.jpg')],
-                    [gesture_peace_right, gesture_peace_left, cv2.imread(f'FingerImages/gesture_peace.jpg')],
-                    [gesture_wait_right, gesture_wait_left, cv2.imread(f'FingerImages/gesture_wait.jpg')]
+                    [gesture_oke_right, gesture_oke_left, cv2.imread(f'FingerImages/gesture_oke.jpg'), 'FingerImages/gesture_oke.jpg'],
+                    [gesture_peace_right, gesture_peace_left, cv2.imread(f'FingerImages/gesture_peace.jpg'), 'FingerImages/gesture_peace.jpg'],
+                    [gesture_wait_right, gesture_wait_left, cv2.imread(f'FingerImages/gesture_wait.jpg'), 'FingerImages/gesture_wait.jpg']
             ]
         elif current_game_level == "button_level_2" or current_game_level == "button_level_5":
             return [
-                    [gesture_peace_right, gesture_peace_left, cv2.imread(f'FingerImages/gesture_peace.jpg')],
-                    [gesture_little_bit_right, gesture_little_bit_left, cv2.imread(f'FingerImages/gesture_little_bit.jpg')],
-                    [gesture_jumbo_right, gesture_jumbo_left, cv2.imread(f'FingerImages/gesture_jumbo.jpg')],
-                    [gesture_butt_right, gesture_butt_left, cv2.imread(f'FingerImages/gesture_butt.jpg')],
-                    [gesture_wait_right, gesture_wait_left, cv2.imread(f'FingerImages/gesture_wait.jpg')]
+                    [gesture_peace_right, gesture_peace_left, cv2.imread(f'FingerImages/gesture_peace.jpg'), 'FingerImages/gesture_peace.jpg'],
+                    [gesture_little_bit_right, gesture_little_bit_left, cv2.imread(f'FingerImages/gesture_little_bit.jpg'), 'FingerImages/gesture_little_bit.jpg'],
+                    [gesture_jumbo_right, gesture_jumbo_left, cv2.imread(f'FingerImages/gesture_jumbo.jpg'), 'FingerImages/gesture_jumbo.jpg'],
+                    [gesture_butt_right, gesture_butt_left, cv2.imread(f'FingerImages/gesture_butt.jpg'), 'FingerImages/gesture_butt.jpg'],
+                    [gesture_wait_right, gesture_wait_left, cv2.imread(f'FingerImages/gesture_wait.jpg'), 'FingerImages/gesture_wait.jpg']
             ]
         else:
             return [
-                    [gesture_butt_right, gesture_butt_left, cv2.imread(f'FingerImages/gesture_butt.jpg')],
-                    [gesture_oke_right, gesture_oke_left, cv2.imread(f'FingerImages/gesture_oke.jpg')],
-                    [gesture_wait_right, gesture_wait_left, cv2.imread(f'FingerImages/gesture_wait.jpg')],
-                    [gesture_jumbo_right, gesture_jumbo_left, cv2.imread(f'FingerImages/gesture_jumbo.jpg')],
-                    [gesture_little_bit_right, gesture_little_bit_left, cv2.imread(f'FingerImages/gesture_little_bit.jpg')],
-                    [gesture_fingers_crossed_right, gesture_fingers_crossed_left, cv2.imread(f'FingerImages/gesture_fingers_crossed.jpg')],
-                    [gesture_peace_right, gesture_peace_left, cv2.imread(f'FingerImages/gesture_peace.jpg')]
+                    [gesture_butt_right, gesture_butt_left, cv2.imread(f'FingerImages/gesture_butt.jpg'), 'FingerImages/gesture_butt.jpg'],
+                    [gesture_oke_right, gesture_oke_left, cv2.imread(f'FingerImages/gesture_oke.jpg'), 'FingerImages/gesture_oke.jpg'],
+                    [gesture_wait_right, gesture_wait_left, cv2.imread(f'FingerImages/gesture_wait.jpg'), 'FingerImages/gesture_wait.jpg'],
+                    [gesture_jumbo_right, gesture_jumbo_left, cv2.imread(f'FingerImages/gesture_jumbo.jpg'), 'FingerImages/gesture_jumbo.jpg'],
+                    [gesture_little_bit_right, gesture_little_bit_left, cv2.imread(f'FingerImages/gesture_little_bit.jpg'), 'FingerImages/gesture_little_bit.jpg'],
+                    [gesture_fingers_crossed_right, gesture_fingers_crossed_left, cv2.imread(f'FingerImages/gesture_fingers_crossed.jpg'), 'FingerImages/gesture_fingers_crossed.jpg'],
+                    [gesture_peace_right, gesture_peace_left, cv2.imread(f'FingerImages/gesture_peace.jpg'), 'FingerImages/gesture_peace.jpg']
             ]
     elif card_name == "Жести двума руками":
         if current_game_level == "button_level_1" or current_game_level == "button_level_4":
             return [
-                    [both_gesture_heart_right, both_gesture_heart_left, cv2.imread(f'FingerImages/both_gesture_heart.jpg')],
-                    [both_gesture_uwu_right, both_gesture_uwu_left, cv2.imread(f'FingerImages/both_gesture_uwu.jpg')],
-                    [both_gesture_camera_right, both_gesture_camera_left, cv2.imread(f'FingerImages/both_gesture_camera.jpg')]
+                    [both_gesture_heart_right, both_gesture_heart_left, cv2.imread(f'FingerImages/both_gesture_heart.jpg'), 'FingerImages/both_gesture_heart.jpg'],
+                    [both_gesture_uwu_right, both_gesture_uwu_left, cv2.imread(f'FingerImages/both_gesture_uwu.jpg'), 'FingerImages/both_gesture_uwu.jpg'],
+                    [both_gesture_camera_right, both_gesture_camera_left, cv2.imread(f'FingerImages/both_gesture_camera.jpg'), 'FingerImages/both_gesture_camera.jpg']
             ]
         elif current_game_level == "button_level_2" or current_game_level == "button_level_5":
             return [
-                    [both_gesture_tutupapa_right, both_gesture_tutupapa_left, cv2.imread(f'FingerImages/both_gesture_tutupapa.jpg')],
-                    [both_gesture_request_right, both_gesture_request_left, cv2.imread(f'FingerImages/both_gesture_request.jpg')],
-                    [both_gesture_heart_right, both_gesture_heart_left, cv2.imread(f'FingerImages/both_gesture_heart.jpg')],
-                    [both_gesture_doubleoke_right, both_gesture_doubleoke_left, cv2.imread(f'FingerImages/both_gesture_doubleoke.jpg')],
-                    [both_gesture_uwu_right, both_gesture_uwu_left, cv2.imread(f'FingerImages/both_gesture_uwu.jpg')]
+                    [both_gesture_tutupapa_right, both_gesture_tutupapa_left, cv2.imread(f'FingerImages/both_gesture_tutupapa.jpg'), 'FingerImages/both_gesture_tutupapa.jpg'],
+                    [both_gesture_request_right, both_gesture_request_left, cv2.imread(f'FingerImages/both_gesture_request.jpg'), 'FingerImages/both_gesture_request.jpg'],
+                    [both_gesture_heart_right, both_gesture_heart_left, cv2.imread(f'FingerImages/both_gesture_heart.jpg'), 'FingerImages/both_gesture_heart.jpg'],
+                    [both_gesture_doubleoke_right, both_gesture_doubleoke_left, cv2.imread(f'FingerImages/both_gesture_doubleoke.jpg'), 'FingerImages/both_gesture_doubleoke.jpg'],
+                    [both_gesture_uwu_right, both_gesture_uwu_left, cv2.imread(f'FingerImages/both_gesture_uwu.jpg'), 'FingerImages/both_gesture_uwu.jpg']
             ]
         else:
             return [
-                    [both_gesture_school_right, both_gesture_school_left, cv2.imread(f'FingerImages/both_gesture_school.jpg')],
-                    [both_gesture_tutupapa_right, both_gesture_tutupapa_left, cv2.imread(f'FingerImages/both_gesture_tutupapa.jpg')],
-                    [both_gesture_camera_right, both_gesture_camera_left, cv2.imread(f'FingerImages/both_gesture_camera.jpg')],
-                    [both_gesture_uwu_right, both_gesture_uwu_left, cv2.imread(f'FingerImages/both_gesture_uwu.jpg')],
-                    [both_gesture_doubleoke_right, both_gesture_doubleoke_left, cv2.imread(f'FingerImages/both_gesture_doubleoke.jpg')],
-                    [both_gesture_heart_right, both_gesture_heart_left, cv2.imread(f'FingerImages/both_gesture_heart.jpg')],
-                    [both_gesture_request_right, both_gesture_request_left, cv2.imread(f'FingerImages/both_gesture_request.jpg')]
+                    [both_gesture_school_right, both_gesture_school_left, cv2.imread(f'FingerImages/both_gesture_school.jpg'), 'FingerImages/both_gesture_school.jpg'],
+                    [both_gesture_tutupapa_right, both_gesture_tutupapa_left, cv2.imread(f'FingerImages/both_gesture_tutupapa.jpg'), 'FingerImages/both_gesture_tutupapa.jpg'],
+                    [both_gesture_camera_right, both_gesture_camera_left, cv2.imread(f'FingerImages/both_gesture_camera.jpg'), 'FingerImages/both_gesture_camera.jpg'],
+                    [both_gesture_uwu_right, both_gesture_uwu_left, cv2.imread(f'FingerImages/both_gesture_uwu.jpg'), 'FingerImages/both_gesture_uwu.jpg'],
+                    [both_gesture_doubleoke_right, both_gesture_doubleoke_left, cv2.imread(f'FingerImages/both_gesture_doubleoke.jpg'), 'FingerImages/both_gesture_doubleoke.jpg'],
+                    [both_gesture_heart_right, both_gesture_heart_left, cv2.imread(f'FingerImages/both_gesture_heart.jpg'), 'FingerImages/both_gesture_heart.jpg'],
+                    [both_gesture_request_right, both_gesture_request_left, cv2.imread(f'FingerImages/both_gesture_request.jpg'), 'FingerImages/both_gesture_request.jpg']
             ]
-    elif card_name == "Міміка обличчя":
-        if current_game_level == "button_level_1" or current_game_level == "button_level_4":
-            return
-        elif current_game_level == "button_level_2" or current_game_level == "button_level_5":
-            return
+
+def getUserLevelArray(numberTasks, UserGestures):
+    UserLevelMassive = []
+    for i in range(numberTasks):
+        # Отримуємо шлях до файлу жесту
+        gesture_path = UserGestures[i]
+        # Витягуємо ім'я файлу з шляху
+        gesture_filename = gesture_path.split('/')[-1]
+        # Отримуємо відповідні масиви жестів зі словника
+        if gesture_filename in gesture_map:
+            right_gesture, left_gesture = gesture_map[gesture_filename]
+            # Додаємо масив [right_gesture, left_gesture, зображення] до результату
+            UserLevelMassive.append([right_gesture, left_gesture, cv2.imread(gesture_path), gesture_path])
         else:
-            return
+            # Якщо жест не знайдено, можна додати порожній список або підняти помилку
+            UserLevelMassive.append([])
+
+    return UserLevelMassive

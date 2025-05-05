@@ -6,7 +6,7 @@ from PyQt5.QtCore import QTimer, Qt
 from functools import partial
 import os
 import time
-import RebuildsComponents
+import RebuildsComponents, LelelCounting
 
 class UserLevelsModule:
     def __init__(self):
@@ -16,6 +16,7 @@ class UserLevelsModule:
         self.selectPositionGesture = ""
         self.frame_order_gesture = QFrame()
 
+    # Вікно для створення користувацького рівня
     def createUserLevel(self):
         print("UserLevelsModule: def createUserLevel()")
         # Створюємо та показуємо модальне вікно
@@ -215,7 +216,7 @@ class UserLevelsModule:
         # Додавання випадаючого списку
         combo_time = QComboBox(frame_time_gestures)
         combo_time.setGeometry(100, 90, 140, 40)
-        combo_time.addItems(["0", "30", "65", "90"])
+        combo_time.addItems(["0", "40", "65", "90"])
         combo_time.setStyleSheet("""
                     QComboBox {
                         background-color: #DAFFDF;
@@ -302,6 +303,7 @@ class UserLevelsModule:
 
         modal.exec_()  # Запускаємо модальне вікно (блокує основне)
 
+    # Функція для наповнення фрейму "порядок жестів"
     def add_CardsOfGestures(self, number):
         for widget in self.frame_order_gesture.findChildren(QWidget):
             widget.deleteLater()
@@ -430,7 +432,6 @@ class UserLevelsModule:
                     self.gestures[N] = image_path
                     break
 
-
     # Функція-обробник мітки для редагування жесту з фрейму "порядок жестів"
     def order_gesture_click(self, image_card):
         if image_card.objectName() == self.selectPositionGesture:
@@ -462,6 +463,28 @@ class UserLevelsModule:
             self.selectPositionGesture = image_card.objectName()
         print(f"Клік на: {self.selectPositionGesture}")
 
+    # Функція зчитування даних з файлу
+    def readDataFile(self):
+        gestures = []
+        time = 0
+        numberGestures = 0
 
-    def startUserLevel(self):
+        # Додати обробник файлу
+
+        return numberGestures, time, gestures
+
+    # Вікно для запуску користувацького рівня
+    def startUserLevel(self, level_cv_frame):
         print("UserLevelsModule: def startUserLevel()")
+        level_cv_frame.show()
+
+        # Додати список з усіма файлами директорії користувацьких рівнів (для того, щоб вибрати рівень)
+
+        UserGestures = [
+            'FingerImages/both_gesture_uwu.jpg',
+            'FingerImages/both_gesture_school.jpg',
+            'FingerImages/gesture_peace.jpg'
+        ]
+        levelCounting = LelelCounting.CreateLevel(3, 0, UserGestures)
+
+        levelCounting.create_new_level_click("Користувацький рівень", "Користувацький рівень", level_cv_frame)
