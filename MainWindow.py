@@ -82,7 +82,7 @@ def mainWindow():
     settingsModule = SettingsModule.SettingsModule()
 
     # Підключення сигналу "clicked" до обробника
-    button_settings.clicked.connect(lambda: settingsModule.show_settings(settings_frame, unvisible_frame))
+    button_settings.clicked.connect(lambda: settingsModule.show_settings(settings_frame, unvisible_frame, window))
 
     # ------------------------------------------------------------------------------------------------------------------Назва програми
 

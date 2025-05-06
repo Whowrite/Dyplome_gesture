@@ -1,8 +1,8 @@
 from PyQt5.QtWidgets import QApplication, QLabel, QWidget, QPushButton, QFrame, QHBoxLayout, \
     QStyle, QMessageBox, QRadioButton, QButtonGroup
-from PyQt5.QtGui import QImage, QPixmap, QFont
+from PyQt5.QtGui import QImage, QPixmap, QFont, QIcon, QTransform
 from PyQt5.QtGui import QImage, QPixmap
-from PyQt5.QtCore import QTimer, Qt
+from PyQt5.QtCore import QTimer, Qt, QSize
 from functools import partial
 import random
 
@@ -20,7 +20,7 @@ class SettingsModule:
             self.color = color
 
     # Функція-обробник кнопки для виклику меню налаштувань
-    def show_settings(self, settings_frame, unvisible_frame):
+    def show_settings(self, settings_frame, unvisible_frame, window):
         settings_frame.show()
         unvisible_frame.show()
 
@@ -73,6 +73,31 @@ class SettingsModule:
                                 }
                             """)
         button_closeSettings.clicked.connect(partial(self.hide_settings, settings_frame, unvisible_frame))
+
+        button_Statistics = QPushButton(settings_frame)
+        button_Statistics.setGeometry(290, 13, 50, 50)
+        # Завантажуємо іконку
+        icon = QIcon("FingerImages/user.png")
+        button_Statistics.setIcon(icon)
+        button_Statistics.setIconSize(QSize(50, 50))  # Налаштовуємо розмір іконки (50x50 пікселів)
+        button_Statistics.show()
+
+        button_Statistics.setFont(font)
+
+        button_Statistics.setStyleSheet("""
+                                        QPushButton {
+                                            background-color: #DAFFDF; /* Колір кнопки */
+                                            color: #eb8934; /* Колір тексту */
+                                            border-radius: 25px; /* Закруглення кутів */
+                                        }
+                                        QPushButton:hover {
+                                            background-color: #5dade2; /* Колір кнопки при наведенні */
+                                        }
+                                        QPushButton:pressed {
+                                            background-color: #1f618d; /* Колір кнопки при натисканні */
+                                        }
+                                    """)
+        button_Statistics.clicked.connect(lambda: self.showUserStatistics(window))
 
         # ------------------------------------------------------------------------------------------------------------------Підпис "Мова застосунку"
 
@@ -272,6 +297,109 @@ class SettingsModule:
         radio_english.raise_()
         radio_pink.raise_()
         button_closeSettings.raise_()
+        button_Statistics.raise_()
+
+    def showUserStatistics(self, window):
+        # ------------------------------------------------------------------------------------------------------------------Фрейм відображення статистики
+
+        frame_UserStatistics = QFrame(window)
+        frame_UserStatistics.setGeometry(0, 0, 1315, 917)
+        frame_UserStatistics.show()
+        frame_UserStatistics.setStyleSheet("""
+                            QFrame {
+                                background-color: #9EFFA5; /* Фон картки */
+                                border-radius: 10px; /* Закруглені кути */
+                            }
+                        """)
+
+        # ------------------------------------------------------------------------------------------------------------------Кнопка для повернення на головну сторінку
+
+        button_return = QPushButton(frame_UserStatistics)
+        button_return.setGeometry(48, 23, 60, 60)
+
+        # Завантажуємо зображення в QPixmap
+        pixmap = QPixmap("FingerImages/right-arrow.png")  # Вкажіть шлях до вашого зображення
+
+        # Обертаємо зображення
+        transform = QTransform().rotate(180)
+        rotated_pixmap = pixmap.transformed(transform)
+
+        # Завантажуємо іконку
+        icon = QIcon(rotated_pixmap)
+        button_return.setIcon(icon)
+        button_return.setIconSize(QSize(50, 50))  # Налаштовуємо розмір іконки (50x50 пікселів)
+        button_return.show()
+
+        button_return.setStyleSheet("""
+                                QPushButton {
+                                    background-color: #DAFFDF; /* Колір кнопки */
+                                    color: #eb8934; /* Колір тексту */
+                                    border-radius: 30px; /* Закруглення кутів */
+                                }
+                                QPushButton:hover {
+                                    background-color: #5dade2; /* Колір кнопки при наведенні */
+                                }
+                                QPushButton:pressed {
+                                    background-color: #1f618d; /* Колір кнопки при натисканні */
+                                }
+                            """)
+        button_return.clicked.connect(
+            partial(self.hide_frame_UserStatistics, frame_UserStatistics))
+
+        # ------------------------------------------------------------------------------------------------------------------Назва вікна
+
+        title_window = QLabel(frame_UserStatistics)
+        title_window.setGeometry(538, 23, 290, 55)
+        title_window.setText("Статистика")
+        title_window.show()
+
+        font = QFont()
+        font.setBold(True)
+        font.setPointSize(16)
+        title_window.setFont(font)
+
+        title_window.setFrameShape(QLabel.StyledPanel)
+        title_window.setFrameShadow(QLabel.Plain)
+        title_window.setAlignment(Qt.AlignCenter)
+        title_window.setStyleSheet("""
+                    QLabel {
+                        background-color: #DAFFDF; /* Колір фону */
+                        color: black; /* Колір тексту */
+                        border-radius: 10px; /* Закруглення кутів */
+                    }
+                """)
+
+        # ------------------------------------------------------------------------------------------------------------------Кнопка Довідки
+
+        button_help = QPushButton(frame_UserStatistics)
+        button_help.setGeometry(1206, 18, 60, 60)
+        button_help.setText("?")
+        button_help.show()
+
+        font2 = QFont()
+        font2.setBold(True)
+        font2.setPointSize(18)
+        button_help.setFont(font2)
+
+        button_help.setStyleSheet("""
+                        QPushButton {
+                            background-color: #DAFFDF; /* Колір кнопки */
+                            color: #eb8934; /* Колір тексту */
+                            border-radius: 30px; /* Закруглення кутів */
+                        }
+                        QPushButton:hover {
+                            background-color: #5dade2; /* Колір кнопки при наведенні */
+                        }
+                        QPushButton:pressed {
+                            background-color: #1f618d; /* Колір кнопки при натисканні */
+                        }
+                    """)
+
+
+
+    def hide_frame_UserStatistics(self, frame_UserStatistics):
+        print("close: frame_UserStatistics")
+        frame_UserStatistics.hide()
 
     # Функція-обробник кнопки для закриття меню налаштувань
     def hide_settings(self, settings_frame, unvisible_frame):
