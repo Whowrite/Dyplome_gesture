@@ -463,28 +463,146 @@ class UserLevelsModule:
             self.selectPositionGesture = image_card.objectName()
         print(f"Клік на: {self.selectPositionGesture}")
 
+    def closeUserLevel(self, level_cv_frame):
+        print("Close level_cv_frame")
+        level_cv_frame.hide()
+        for widget in level_cv_frame.findChildren(QWidget):
+            widget.deleteLater()
+
     # Функція зчитування даних з файлу
-    def readDataFile(self):
+    def readDataFile(self, filename):
         gestures = []
         time = 0
         numberGestures = 0
 
-        # Додати обробник файлу
+        try:
+            with open(filename, 'r', encoding='utf-8') as file:
+                for line in file:
+                    line = line.strip()
+                    if line.startswith("Gestures:"):
+                        # Витягуємо список жестів із рядка, видаляючи квадратні дужки та розділяючи за комами
+                        gestures_str = line.replace("Gestures: ", "").strip("[]")
+                        gestures = [gesture.strip().strip("'") for gesture in gestures_str.split(", ")]
+                    elif line.startswith("Time:"):
+                        time = int(line.replace("Time: ", "").strip())
+                    elif line.startswith("Number of Gestures:"):
+                        numberGestures = int(line.replace("Number of Gestures: ", "").strip())
+        except Exception as e:
+            print(f"Помилка при зчитуванні файлу: {e}")
 
         return numberGestures, time, gestures
 
-    # Вікно для запуску користувацького рівня
-    def startUserLevel(self, level_cv_frame):
-        print("UserLevelsModule: def startUserLevel()")
+    # Функція вибору користувацького рівня з директорії UserLevels/...
+    def openUserLevelPanel(self, level_cv_frame):
+        for widget in level_cv_frame.findChildren(QWidget):
+            widget.deleteLater()
         level_cv_frame.show()
+        # ------------------------------------------------------------------------------------------------------------------Фрейм для визначення кількості жестів
 
-        # Додати список з усіма файлами директорії користувацьких рівнів (для того, щоб вибрати рівень)
+        frame_checkUserLevel = QFrame(level_cv_frame)
+        frame_checkUserLevel.show()
+        frame_checkUserLevel.setGeometry(400, 240, 500, 500)
+        frame_checkUserLevel.setStyleSheet("""
+                                                QFrame {
+                                                    background-color: #DAFFDF; /* Фон картки */
+                                                    border-radius: 10px; /* Закруглені кути */
+                                                }
+                                            """)
 
-        UserGestures = [
-            'FingerImages/both_gesture_uwu.jpg',
-            'FingerImages/both_gesture_school.jpg',
-            'FingerImages/gesture_peace.jpg'
-        ]
-        levelCounting = LelelCounting.CreateLevel(3, 0, UserGestures)
+        title_FrameUserLevel = QLabel(frame_checkUserLevel)
+        title_FrameUserLevel.show()
+        title_FrameUserLevel.setGeometry(60, 170, 380, 55)
+        title_FrameUserLevel.setText("Виберіть рівень зі списку:")
+
+        font = QFont()
+        font.setBold(True)
+        font.setPointSize(16)
+        title_FrameUserLevel.setFont(font)
+
+        title_FrameUserLevel.setFrameShape(QLabel.StyledPanel)
+        title_FrameUserLevel.setFrameShadow(QLabel.Plain)
+        title_FrameUserLevel.setAlignment(Qt.AlignCenter)
+        title_FrameUserLevel.setStyleSheet("""
+                                            QLabel {
+                                                background-color: #DAFFDF; /* Колір фону */
+                                                color: black; /* Колір тексту */
+                                                border-radius: 10px; /* Закруглення кутів */
+                                            }
+                                        """)
+
+        folderPath = "UserLevels/"
+        myList = os.listdir(folderPath)
+        print(f"def openUserLevelPanel:\n {myList}")
+        # Додавання випадаючого списку
+        combo_UserLevel = QComboBox(frame_checkUserLevel)
+        combo_UserLevel.show()
+        combo_UserLevel.setGeometry(60, 250, 380, 40)
+        combo_UserLevel.addItems(myList)
+        combo_UserLevel.setCurrentIndex(-1)  # Знімаємо вибір, щоб не було автоматично вибраного елемента
+        combo_UserLevel.setStyleSheet("""
+                    QComboBox {
+                        background-color: #9EFFA5;
+                        border: 1px solid #4CAF50;
+                        border-radius: 5px;
+                        padding: 5px;
+                        font-size: 20px;
+                    }
+                    QComboBox::drop-down {
+                        border: none;
+                    }
+                    QComboBox::down-arrow {
+                        image: url(FingerImages/down_arrow.png); /* Вкажіть шлях до іконки, якщо потрібно */
+                        width: 25px;
+                        height: 25px;
+                        margin-right: 10px; /* Зміщення стрілки лівіше */
+                        subcontrol-origin: padding;
+                        subcontrol-position: center right; /* Позиціонування стрілки */
+                    }
+                    QComboBox QAbstractItemView {
+                        background-color: #DAFFDF; /* Фон випадаючого меню */
+                        selection-background-color: #1d70f5; /* Фон виділеного елемента */
+                        selection-color: white; /* Колір тексту виділеного елемента */
+                        border: 1px solid #003087; /* Межа випадаючого меню */
+                    }
+                """)
+
+        combo_UserLevel.currentIndexChanged.connect(lambda: self.startUserLevel(level_cv_frame, folderPath + combo_UserLevel.currentText()))
+
+
+        # -------------------------------------------------------------------------------------------------------------Кнопка для повернення на сторінку Користувацький рівень
+        button_return = QPushButton(level_cv_frame)
+        button_return.setGeometry(48, 23, 60, 60)
+        button_return.setText("X")
+        button_return.show()
+
+        button_return.setFont(font)
+
+        button_return.setStyleSheet("""
+                                        QPushButton {
+                                            background-color: #DAFFDF; /* Колір кнопки */
+                                            color: #eb8934; /* Колір тексту */
+                                            border-radius: 30px; /* Закруглення кутів */
+                                        }
+                                        QPushButton:hover {
+                                            background-color: #5dade2; /* Колір кнопки при наведенні */
+                                        }
+                                        QPushButton:pressed {
+                                            background-color: #1f618d; /* Колір кнопки при натисканні */
+                                        }
+                                    """)
+        button_return.clicked.connect(lambda: self.closeUserLevel(level_cv_frame))
+
+        # Вікно для запуску користувацького рівня
+
+    # Функція зчитування даних з вибраного файлу та запуску рівня
+    def startUserLevel(self, level_cv_frame, filename):
+        print("UserLevelsModule: def startUserLevel()")
+        print(f'filename: {filename}')
+
+        numberGestures, time, UserGestures = self.readDataFile(filename)
+
+        print(f'self.readDataFile(filename):\n {numberGestures, time, UserGestures}')
+
+        levelCounting = LelelCounting.CreateLevel(numberGestures, time, UserGestures)
 
         levelCounting.create_new_level_click("Користувацький рівень", "Користувацький рівень", level_cv_frame)

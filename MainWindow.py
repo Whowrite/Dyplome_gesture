@@ -730,7 +730,7 @@ def visible_select_levelForUserLevels_click(select_Level, title_window, button_h
     opacity_effect = QGraphicsOpacityEffect()
     opacity_effect.setOpacity(0.4)
     startUserLevel_frame.setGraphicsEffect(opacity_effect)
-    startUserLevel_frame.clicked.connect(lambda: userLevel.startUserLevel(level_cv_frame))
+    startUserLevel_frame.clicked.connect(lambda: userLevel.openUserLevelPanel(level_cv_frame))
 
     # ------------------------------------------------------------------------------------------------------------------Фрейм створення користувацього рівня
 
