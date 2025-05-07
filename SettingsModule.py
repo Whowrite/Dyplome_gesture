@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QApplication, QLabel, QWidget, QPushButton, QFrame, QHBoxLayout, \
-    QStyle, QMessageBox, QRadioButton, QButtonGroup
+    QStyle, QMessageBox, QRadioButton, QButtonGroup, QProgressBar
 from PyQt5.QtGui import QImage, QPixmap, QFont, QIcon, QTransform
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtCore import QTimer, Qt, QSize
@@ -349,7 +349,7 @@ class SettingsModule:
         # ------------------------------------------------------------------------------------------------------------------Назва вікна
 
         title_window = QLabel(frame_UserStatistics)
-        title_window.setGeometry(538, 23, 290, 55)
+        title_window.setGeometry(488, 23, 335, 55)
         title_window.setText("Статистика")
         title_window.show()
 
@@ -395,7 +395,256 @@ class SettingsModule:
                         }
                     """)
 
+        # ------------------------------------------------------------------------------------------------------------------Заголовки
 
+        title_facts = QLabel(frame_UserStatistics)
+        title_facts.setGeometry(48, 135, 470, 55)
+        title_facts.setText("Цікаві факти")
+        title_facts.show()
+
+        font3 = QFont()
+        font3.setBold(True)
+        font3.setPointSize(15)
+        title_facts.setFont(font3)
+
+        title_facts.setFrameShape(QLabel.StyledPanel)
+        title_facts.setFrameShadow(QLabel.Plain)
+        title_facts.setAlignment(Qt.AlignCenter)
+        title_facts.setStyleSheet("""
+                            QLabel {
+                                background-color: #DAFFDF; /* Колір фону */
+                                color: black; /* Колір тексту */
+                                border-radius: 10px; /* Закруглення кутів */
+                            }
+                        """)
+
+        title_correctGestures = QLabel(frame_UserStatistics)
+        title_correctGestures.setGeometry(796, 135, 470, 55)
+        title_correctGestures.setText("Найбільше правильних жестів")
+        title_correctGestures.show()
+
+        title_correctGestures.setFont(font3)
+
+        title_correctGestures.setFrameShape(QLabel.StyledPanel)
+        title_correctGestures.setFrameShadow(QLabel.Plain)
+        title_correctGestures.setAlignment(Qt.AlignCenter)
+        title_correctGestures.setStyleSheet("""
+                                    QLabel {
+                                        background-color: #DAFFDF; /* Колір фону */
+                                        color: black; /* Колір тексту */
+                                        border-radius: 10px; /* Закруглення кутів */
+                                    }
+                                """)
+
+        # ------------------------------------------------------------------------------------------------------------------Фрейм цікавих фактів
+
+        frame_facts = QFrame(frame_UserStatistics)
+        frame_facts.setGeometry(48, 210, 470, 450)
+        frame_facts.show()
+        frame_facts.setStyleSheet("""
+                                    QFrame {
+                                        background-color: #DAFFDF; /* Фон картки */
+                                        border-radius: 10px; /* Закруглені кути */
+                                        border: 5 solid black;
+                                    }
+                                """)
+
+        label_mode = QLabel(frame_facts)
+        label_mode.setGeometry(30, 30, 300, 55)
+        label_mode.setText("Улюблений режим:")
+        label_mode.show()
+
+        font4 = QFont()
+        font4.setBold(False)
+        font4.setPointSize(15)
+        label_mode.setFont(font4)
+
+        label_mode.setStyleSheet("""
+                                            QLabel {
+                                                background-color: #DAFFDF; /* Колір фону */
+                                                color: black; /* Колір тексту */
+                                                border: none;
+                                            }
+                                        """)
+
+        label_modeAnswer = QLabel(frame_facts)
+        label_modeAnswer.setGeometry(30, 95, 410, 55)
+        label_modeAnswer.setText((lambda: self.get_userLikeMode())())
+        label_modeAnswer.show()
+
+        label_modeAnswer.setFont(font3)
+        label_modeAnswer.setFrameShape(QLabel.StyledPanel)
+        label_modeAnswer.setFrameShadow(QLabel.Plain)
+        label_modeAnswer.setAlignment(Qt.AlignCenter)
+
+        label_modeAnswer.setStyleSheet("""
+                                                    QLabel {
+                                                        background-color: #DAFFDF; /* Колір фону */
+                                                        color: black; /* Колір тексту */
+                                                        border: none;
+                                                    }
+                                                """)
+        # --------------------------------------------------
+        label_numberSessionsLastMonth = QLabel(frame_facts)
+        label_numberSessionsLastMonth.setGeometry(30, 170, 300, 55)
+        label_numberSessionsLastMonth.setText("За останній місяць:")
+        label_numberSessionsLastMonth.show()
+
+        label_numberSessionsLastMonth.setFont(font4)
+
+        label_numberSessionsLastMonth.setStyleSheet("""
+                                                    QLabel {
+                                                        background-color: #DAFFDF; /* Колір фону */
+                                                        color: black; /* Колір тексту */
+                                                        border: none;
+                                                    }
+                                                """)
+
+        label_numberSessionsLastMonthAnswer = QLabel(frame_facts)
+        label_numberSessionsLastMonthAnswer.setGeometry(30, 235, 410, 55)
+        label_numberSessionsLastMonthAnswer.setText(self.get_NumberSessionLastMonth())
+        label_numberSessionsLastMonthAnswer.show()
+
+        label_numberSessionsLastMonthAnswer.setFont(font3)
+        label_numberSessionsLastMonthAnswer.setFrameShape(QLabel.StyledPanel)
+        label_numberSessionsLastMonthAnswer.setFrameShadow(QLabel.Plain)
+        label_numberSessionsLastMonthAnswer.setAlignment(Qt.AlignCenter)
+
+        label_numberSessionsLastMonthAnswer.setStyleSheet("""
+                                                            QLabel {
+                                                                background-color: none; /* Колір фону */
+                                                                color: black; /* Колір тексту */
+                                                                border: none;
+                                                            }
+                                                        """)
+
+        # --------------------------------------------------
+        label_AverageTimeSessions = QLabel(frame_facts)
+        label_AverageTimeSessions.setGeometry(30, 305, 300, 55)
+        label_AverageTimeSessions.setText("Середній час сеансу (хв.):")
+        label_AverageTimeSessions.show()
+
+        label_AverageTimeSessions.setFont(font4)
+
+        label_AverageTimeSessions.setStyleSheet("""
+                                                            QLabel {
+                                                                background-color: #DAFFDF; /* Колір фону */
+                                                                color: black; /* Колір тексту */
+                                                                border: none;
+                                                            }
+                                                        """)
+
+        label_AverageTimeSessionsAnswer = QLabel(frame_facts)
+        label_AverageTimeSessionsAnswer.setGeometry(30, 365, 410, 55)
+        label_AverageTimeSessionsAnswer.setText(self.get_AverageTimeSession())
+        label_AverageTimeSessionsAnswer.show()
+
+        label_AverageTimeSessionsAnswer.setFont(font3)
+        label_AverageTimeSessionsAnswer.setFrameShape(QLabel.StyledPanel)
+        label_AverageTimeSessionsAnswer.setFrameShadow(QLabel.Plain)
+        label_AverageTimeSessionsAnswer.setAlignment(Qt.AlignCenter)
+
+        label_AverageTimeSessionsAnswer.setStyleSheet("""
+                                                                    QLabel {
+                                                                        background-color: none; /* Колір фону */
+                                                                        color: black; /* Колір тексту */
+                                                                        border: none;
+                                                                    }
+                                                                """)
+
+        # ------------------------------------------------------------------------------------------------------------------Фрейм правильних жестів
+
+        frame_correctGestures = QFrame(frame_UserStatistics)
+        frame_correctGestures.setGeometry(796, 210, 470, 450)
+        frame_correctGestures.show()
+        frame_correctGestures.setStyleSheet("""
+                                            QFrame {
+                                                background-color: #DAFFDF; /* Фон картки */
+                                                border-radius: 10px; /* Закруглені кути */
+                                                border: 5 solid black;
+                                            }
+                                        """)
+        y = 0
+        # Прогрес-бари та підписи
+        for item in (lambda: self.get_correctGestures())():
+            image, value, maxvalue = item
+            # Зображення
+            image_label = QLabel(frame_correctGestures)
+            image_label.setGeometry(30, 30 + y, 100, 100)
+            pixmap = QPixmap(image)
+            image_label.setPixmap(pixmap.scaled(100, 100, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+            image_label.setStyleSheet("""
+                                                            QLabel {
+                                                                background-color: none; /* Колір фону */
+                                                                border: none;
+                                                            }
+                                                        """)
+            image_label.show()
+
+            # Прогрес-бар
+            progress_bar = QProgressBar(frame_correctGestures)
+            progress_bar.setGeometry(150, 55 + y, 300, 50)
+            progress_bar.setMinimum(0)
+            progress_bar.setMaximum(maxvalue)
+            progress_bar.setValue(value)
+            progress_bar.setFormat("%v/%m")  # Показує поточне значення / максимум (наприклад, 7/10)
+            progress_bar.setAlignment(Qt.AlignCenter)  # Вирівнювання тексту по центру
+            progress_bar.setStyleSheet("""
+                QProgressBar {
+                    border: none;
+                    border-radius: 15px;
+                    background-color: #FFF5E6;  /* Колір фону */
+                }
+                QProgressBar::chunk {
+                    background-color: #FF69B4;  /* Колір заповнення */
+                    border-radius: 15px;
+                }
+            """)
+            progress_bar.show()
+            y += 140
+
+        # ------------------------------------------------------------------------------------------------------------------Пасхалка від розробника
+
+        title_outDeveloper = QLabel(frame_UserStatistics)
+        title_outDeveloper.setGeometry(160, 850, 980, 35)
+        title_outDeveloper.setText("Порада від розробника: “Іноді лінь, може підштовхнути вас до здійснення мрій!")
+        title_outDeveloper.show()
+
+        font5 = QFont()
+        font5.setBold(True)
+        font5.setPointSize(10)
+        title_outDeveloper.setFont(font5)
+
+        title_outDeveloper.setFrameShape(QLabel.StyledPanel)
+        title_outDeveloper.setFrameShadow(QLabel.Plain)
+        title_outDeveloper.setAlignment(Qt.AlignCenter)
+        title_outDeveloper.setStyleSheet("""
+                                    QLabel {
+                                        background-color: #DAFFDF; /* Колір фону */
+                                        color: black; /* Колір тексту */
+                                        border-radius: 10px; /* Закруглення кутів */
+                                    }
+                                """)
+
+    def get_userLikeMode(self):
+        # Додати запит до бд
+        result = "Жести однією рукою"
+        return result
+
+    def get_NumberSessionLastMonth(self):
+        # Додати запит до бд
+        result = 15
+        return str(result)
+
+    def get_AverageTimeSession(self):
+        # Додати запит до бд
+        result = 26
+        return str(result)
+
+    def get_correctGestures(self):
+        # Додати запит до бд
+        result = [["FingerImages/both_gesture_heart.jpg", 7, 10], ["FingerImages/gesture_oke.jpg", 5, 10], ["FingerImages/both_gesture_uwu.jpg", 2, 10]]
+        return result
 
     def hide_frame_UserStatistics(self, frame_UserStatistics):
         print("close: frame_UserStatistics")
