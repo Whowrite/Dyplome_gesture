@@ -4,16 +4,19 @@ from PyQt5.QtGui import QImage, QPixmap, QFont, QIcon, QTransform
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtCore import QTimer, Qt, QSize
 from functools import partial
-import random
+import random, MainWindow
 
 class SettingsModule:
-    def __init__(self):
-        self.language = "UK"
+    def __init__(self, main):
+        self.language = 0
         self.color = "green"
+        self.main_window = main
 
     def set_language(self, lang):
-        if lang in ["UK", "EN"]:
+        if lang in [0, 1]:
             self.language = lang
+            print(f"def set_language(self, lang): {lang}")
+            self.main_window.setLanguage(lang)
 
     def set_color(self, color):
         if color in ["green", "purple", "orange", "pink"]:
@@ -129,8 +132,8 @@ class SettingsModule:
         radio_ukrainian = QRadioButton(settings_frame)
         radio_ukrainian.setGeometry(40, 100, 180, 30)
         radio_ukrainian.setText("Українська")
-        radio_ukrainian.setChecked(self.language == "UK")
-        radio_ukrainian.toggled.connect(lambda: self.set_language("UK"))
+        radio_ukrainian.setChecked(self.language == 0)
+        radio_ukrainian.toggled.connect(lambda: self.set_language(0))
         radio_ukrainian.setStyleSheet(radio_button_style)
         radio_ukrainian.show()
         radio_ukrainian.setFont(font)
@@ -139,8 +142,8 @@ class SettingsModule:
         radio_english = QRadioButton(settings_frame)
         radio_english.setGeometry(40, 150, 180, 30)
         radio_english.setText("Англійська")
-        radio_english.setChecked(self.language == "EN")
-        radio_english.toggled.connect(lambda: self.set_language("EN"))
+        radio_english.setChecked(self.language == 1)
+        radio_english.toggled.connect(lambda: self.set_language(1))
         radio_english.setStyleSheet(radio_button_style)
         radio_english.show()
         radio_english.setFont(font)

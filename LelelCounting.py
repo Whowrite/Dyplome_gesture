@@ -21,9 +21,16 @@ class CreateLevel:
         self.time_remaining = Time
         self.countdown_timer = QTimer()
         self.countpoints = 0
+        self.cards_names = {
+            "Gestures with one hand": "Жести однією рукою",
+            "Gestures with two hand": "Жести двума руками",
+            "User level": "Користувацький рівень"
+        }
 
     # Функція-обробник кнопки для створення рівня
     def create_new_level_click(self, current_game_level, card_name, level_cv_frame):
+        if card_name in self.cards_names:
+            card_name = self.cards_names[card_name]
         print("Good luck: " + current_game_level)
         self.current_game_level = current_game_level
         if not card_name == "Користувацький рівень":
