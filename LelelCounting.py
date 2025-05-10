@@ -26,7 +26,7 @@ class CreateLevel:
             "Gestures with two hand": "Жести двума руками",
             "User level": "Користувацький рівень"
         }
-        self.widgetsColor = "#DAFFDF"
+        self.widgetsColor = ["#9EFFA5", "#DAFFDF"]
         self.widgetsLanguage = widgetsLanguage
         self.widgetsText = {
             "button_skip": ['Пропустити', 'Skip'],
@@ -40,6 +40,11 @@ class CreateLevel:
     def setLanguage(self, Language):
         self.widgetsLanguage = Language
         print(f"class CreateLevel(): def setLanguage(self, Language): {Language}")
+
+    # Функція для зміни мови додатку
+    def setColor(self, color):
+        self.widgetsColor = color
+        print(f"class CreateLevel(): def setColor(self, color): {color}")
 
     # Функція для зміни мови додатку
     def setDefaultParameters(self):
@@ -96,13 +101,13 @@ class CreateLevel:
             level_Counter = QLabel(frameForLevelCounters)
             level_Counter.setGeometry(paddingLeft + paddingCenter, 15, 40, 40)
             level_Counter.setObjectName("level_Counter_" + str(i))
-            level_Counter.setStyleSheet("""
-                        QLabel {
-                            background-color: #DAFFDF; /* Колір фону */
+            level_Counter.setStyleSheet(f"""
+                        QLabel {{
+                            background-color: {self.widgetsColor[1]}; /* Колір фону */
                             color: black; /* Колір тексту */
                             border-radius: 5px; /* Закруглення кутів */
                             border: 2px solid blue;
-                        }
+                        }}
                     """)
             level_Counter.show()
             paddingCenter += 43
@@ -127,7 +132,7 @@ class CreateLevel:
         # Додамо QLabel для відображення відео
         camera_label = QLabel(level_cv_frame)
         camera_label.setGeometry(250, 120, 820, 650)
-        camera_label.setStyleSheet("background-color: #9EFFA5;")
+        camera_label.setStyleSheet(f"background-color: {self.widgetsColor[0]};")
         camera_label.setAlignment(Qt.AlignCenter)
         camera_label.show()
 
@@ -188,15 +193,15 @@ class CreateLevel:
                         if detector.compareGestures(tempArray):
                             founded_label = frameForLevelCounters.findChild(QLabel,
                                                                             "level_Counter_" + str(self.current_level))
-                            founded_label.setStyleSheet("""
-                                                                    QLabel {
-                                                                        background-color: #DAFFDF; /* Колір фону */
+                            founded_label.setStyleSheet(f"""
+                                                                    QLabel {{
+                                                                        background-color: {self.widgetsColor[1]}; /* Колір фону */
                                                                         color: black; /* Колір тексту */
                                                                         border-radius: 5px; /* Закруглення кутів */
                                                                         border: 2px solid green;
                                                                         font-size: 25px;
                                                                         font-weight: bold;
-                                                                    }
+                                                                    }}
                                                                 """)
                             founded_label.setText("✓")
                             self.current_level += 1
@@ -246,13 +251,13 @@ class CreateLevel:
         timer_label.setGeometry(250, 26, 200, 50)
         timer_label.setAlignment(Qt.AlignCenter)
         timer_label.setFont(QFont("Arial", 18, QFont.Bold))
-        timer_label.setStyleSheet("""
-            QLabel {
-                background-color: #DAFFDF; 
+        timer_label.setStyleSheet(f"""
+            QLabel {{
+                background-color: {self.widgetsColor[1]}; 
                 color: black;
                 border-radius: 10px;
                 border: 2px solid blue;
-            }
+            }}
         """)
 
         # Встановлюємо початковий час залежно від рівня
@@ -280,18 +285,18 @@ class CreateLevel:
         font.setPointSize(18)
         button_return.setFont(font)
 
-        button_return.setStyleSheet("""
-                                QPushButton {
-                                    background-color: #DAFFDF; /* Колір кнопки */
+        button_return.setStyleSheet(f"""
+                                QPushButton {{
+                                    background-color: {self.widgetsColor[1]}; /* Колір кнопки */
                                     color: #eb8934; /* Колір тексту */
                                     border-radius: 30px; /* Закруглення кутів */
-                                }
-                                QPushButton:hover {
+                                }}
+                                QPushButton:hover {{
                                     background-color: #5dade2; /* Колір кнопки при наведенні */
-                                }
-                                QPushButton:pressed {
+                                }}
+                                QPushButton:pressed {{
                                     background-color: #1f618d; /* Колір кнопки при натисканні */
-                                }
+                                }}
                             """)
         button_return.clicked.connect(lambda: (self.stop_camera(timer, cap, camera_label), self.closingCVframe(level_cv_frame, frameForLevelCounters)))
 
@@ -307,18 +312,18 @@ class CreateLevel:
         font.setPointSize(16)
         button_skip.setFont(font)
 
-        button_skip.setStyleSheet("""
-                                        QPushButton {
-                                            background-color: #DAFFDF; /* Колір кнопки */
+        button_skip.setStyleSheet(f"""
+                                        QPushButton {{
+                                            background-color: {self.widgetsColor[1]}; /* Колір кнопки */
                                             color: black; /* Колір тексту */
                                             border-radius: 10px; /* Закруглення кутів */
-                                        }
-                                        QPushButton:hover {
+                                        }}
+                                        QPushButton:hover {{
                                             background-color: #5dade2; /* Колір кнопки при наведенні */
-                                        }
-                                        QPushButton:pressed {
+                                        }}
+                                        QPushButton:pressed {{
                                             background-color: #1f618d; /* Колір кнопки при натисканні */
-                                        }
+                                        }}
                                     """)
         button_skip.clicked.connect(
             lambda: (self.skipGesture(level_cv_frame, frameForLevelCounters, timer, cap, camera_label)))
@@ -338,13 +343,13 @@ class CreateLevel:
         """Оновлює таймерний відлік на екрані"""
         if self.time_remaining <= 10:
             timer_label.setFont(QFont("Arial", 20, QFont.Bold))
-            timer_label.setStyleSheet("""
-                        QLabel {
-                            background-color: #DAFFDF; 
+            timer_label.setStyleSheet(f"""
+                        QLabel {{
+                            background-color: {self.widgetsColor[1]}; 
                             color: red;
                             border-radius: 10px;
                             border: 2px solid blue;
-                        }
+                        }}
                     """)
         if self.time_remaining > 0:
             self.time_remaining -= 1
@@ -358,13 +363,13 @@ class CreateLevel:
         for i in range(self.numberTasks):
             founded_label = frameForLevelCounters.findChild(QLabel,
                                                             "level_Counter_" + str(i))
-            founded_label.setStyleSheet("""
-                            QLabel {
-                                    background-color: #DAFFDF; /* Колір фону */
+            founded_label.setStyleSheet(f"""
+                            QLabel {{
+                                    background-color: {self.widgetsColor[1]}; /* Колір фону */
                                     color: black; /* Колір тексту */
                                     border-radius: 5px; /* Закруглення кутів */
                                     border: 2px solid blue;
-                            }
+                            }}
                             """)
             founded_label.setText("")
 
@@ -408,16 +413,16 @@ class CreateLevel:
     def skipGesture(self, level_cv_frame, frameForLevelCounters, timer, cap, camera_label):
         founded_label = frameForLevelCounters.findChild(QLabel,
                                                         "level_Counter_" + str(self.current_level))
-        founded_label.setStyleSheet("""
-                                                                        QLabel {
-                                                                            background-color: #DAFFDF; /* Колір фону */
-                                                                            color: black; /* Колір тексту */
-                                                                            border-radius: 5px; /* Закруглення кутів */
-                                                                            border: 2px solid red;
-                                                                            font-size: 25px;
-                                                                            font-weight: bold;
-                                                                        }
-                                                                    """)
+        founded_label.setStyleSheet(f"""
+                                        QLabel {{
+                                            background-color: {self.widgetsColor[1]}; /* Колір фону */
+                                            color: black; /* Колір тексту */
+                                            border-radius: 5px; /* Закруглення кутів */
+                                            border: 2px solid red;
+                                            font-size: 25px;
+                                            font-weight: bold;
+                                        }}
+                                    """)
         founded_label.setText("X")
         self.current_level += 1
         self.errorAnswers += 1

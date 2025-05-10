@@ -9,7 +9,7 @@ import random, MainWindow
 class SettingsModule:
     def __init__(self, main, level_counting):
         self.widgetsLanguage = 0
-        self.color = "green"
+        self.widgetsColor = ["#9EFFA5", "#DAFFDF"]
         self.main_window = main
         self.level_counting = level_counting
         self.widgetsText = {
@@ -59,6 +59,8 @@ class SettingsModule:
         self.wish_text = None
         self.button_reset = None
         self.button_exit = None
+        self.button_closeSettings = None
+        self.button_Statistics = None
 
     def set_language(self, lang):
         if lang in [0, 1]:
@@ -69,34 +71,101 @@ class SettingsModule:
             self.update_ui()
 
     def set_color(self, color):
-        if color in ["green", "purple", "orange", "pink"]:
-            self.color = color
+        if color[0] in ["9EFFA5", "CA9EFF", "FFCD9E", "FF9EBB"] and color[1] in ["DAFFDF", "F9DAFF", "FFEBDA", "FFDAEC"]:
+            self.widgetsColor[0] = f'#{color[0]}'
+            self.widgetsColor[1] = f'#{color[1]}'
+            self.main_window.setColor(self.widgetsColor)
+            self.level_counting.setColor(self.widgetsColor)
+            self.update_ui()
 
     def update_ui(self):
         if self.label_language:
             self.label_language.setText(self.widgetsText["label_language"][self.widgetsLanguage])
-        if self.radio_ukrainian:
-            self.radio_ukrainian.setText(self.widgetsText["radio_ukrainian"][self.widgetsLanguage])
-        if self.radio_english:
-            self.radio_english.setText(self.widgetsText["radio_english"][self.widgetsLanguage])
+            self.label_language.setStyleSheet(f"background-color: {self.widgetsColor[0]};")
         if self.label_color:
             self.label_color.setText(self.widgetsText["label_color"][self.widgetsLanguage])
-        if self.radio_green:
-            self.radio_green.setText(self.widgetsText["radio_green"][self.widgetsLanguage])
-        if self.radio_purple:
-            self.radio_purple.setText(self.widgetsText["radio_purple"][self.widgetsLanguage])
-        if self.radio_orange:
-            self.radio_orange.setText(self.widgetsText["radio_orange"][self.widgetsLanguage])
-        if self.radio_pink:
-            self.radio_pink.setText(self.widgetsText["radio_pink"][self.widgetsLanguage])
+            self.label_color.setStyleSheet(f"background-color: {self.widgetsColor[0]};")
         if self.wish_label:
             self.wish_label.setText(self.widgetsText["wish_label"][self.widgetsLanguage])
+            self.wish_label.setStyleSheet(f"background-color: {self.widgetsColor[0]};")
         if self.wish_text:
             self.wish_text.setText(self.wishes[self.widgetsLanguage][self.select_wish])
+            self.wish_text.setStyleSheet(f"background-color: {self.widgetsColor[0]};")
+        button_style = f"""
+                    QPushButton {{
+                        background-color: {self.widgetsColor[1]};
+                        color: black;
+                        border-radius: 10px;
+                    }}
+                    QPushButton:hover {{
+                        background-color: #5dade2;
+                    }}
+                    QPushButton:pressed {{
+                        background-color: #1f618d;
+                    }}
+                """
+        button_style2 = f"""
+                                QPushButton {{
+                                    background-color: {self.widgetsColor[1]}; /* Колір кнопки */
+                                    color: #eb8934; /* Колір тексту */
+                                    border-radius: 25px; /* Закруглення кутів */
+                                }}
+                                QPushButton:hover {{
+                                    background-color: #5dade2; /* Колір кнопки при наведенні */
+                                }}
+                                QPushButton:pressed {{
+                                    background-color: #1f618d; /* Колір кнопки при натисканні */
+                                }}
+                            """
         if self.button_reset:
             self.button_reset.setText(self.widgetsText["button_reset"][self.widgetsLanguage])
+            self.button_reset.setStyleSheet(button_style)
         if self.button_exit:
             self.button_exit.setText(self.widgetsText["button_exit"][self.widgetsLanguage])
+            self.button_exit.setStyleSheet(button_style)
+        if self.button_closeSettings:
+            self.button_closeSettings.setStyleSheet(button_style2)
+        if self.button_Statistics:
+            self.button_Statistics.setStyleSheet(button_style2)
+
+        # Стиль для квадратних QRadioButton
+        radio_button_style = f"""
+                    QRadioButton::indicator {{
+                        width: 20px;
+                        height: 20px;
+                        border: 2px solid black;
+                        border-radius: 5px;
+                    }}
+                    QRadioButton::indicator:checked {{
+                        background-color: #5dade2;
+                        border: 2px solid black;
+                    }}
+                    QRadioButton::indicator:unchecked {{
+                        background-color: white;
+                        border: 2px solid black;
+                    }}
+                    QRadioButton {{
+                        background-color: {self.widgetsColor[0]};
+                    }}
+                """
+        if self.radio_ukrainian:
+            self.radio_ukrainian.setText(self.widgetsText["radio_ukrainian"][self.widgetsLanguage])
+            self.radio_ukrainian.setStyleSheet(radio_button_style)
+        if self.radio_english:
+            self.radio_english.setText(self.widgetsText["radio_english"][self.widgetsLanguage])
+            self.radio_english.setStyleSheet(radio_button_style)
+        if self.radio_green:
+            self.radio_green.setText(self.widgetsText["radio_green"][self.widgetsLanguage])
+            self.radio_green.setStyleSheet(radio_button_style)
+        if self.radio_purple:
+            self.radio_purple.setText(self.widgetsText["radio_purple"][self.widgetsLanguage])
+            self.radio_purple.setStyleSheet(radio_button_style)
+        if self.radio_orange:
+            self.radio_orange.setText(self.widgetsText["radio_orange"][self.widgetsLanguage])
+            self.radio_orange.setStyleSheet(radio_button_style)
+        if self.radio_pink:
+            self.radio_pink.setText(self.widgetsText["radio_pink"][self.widgetsLanguage])
+            self.radio_pink.setStyleSheet(radio_button_style)
 
     # Функція-обробник кнопки для виклику меню налаштувань
     def show_settings(self, settings_frame, unvisible_frame, window):
@@ -106,84 +175,84 @@ class SettingsModule:
         unvisible_frame.clicked.connect(partial(self.hide_settings, settings_frame, unvisible_frame))
 
         # Стиль для квадратних QRadioButton
-        radio_button_style = """
-            QRadioButton::indicator {
+        radio_button_style = f"""
+            QRadioButton::indicator {{
                 width: 20px;
                 height: 20px;
                 border: 2px solid black;
                 border-radius: 5px;
-            }
-            QRadioButton::indicator:checked {
+            }}
+            QRadioButton::indicator:checked {{
                 background-color: #5dade2;
                 border: 2px solid black;
-            }
-            QRadioButton::indicator:unchecked {
+            }}
+            QRadioButton::indicator:unchecked {{
                 background-color: white;
                 border: 2px solid black;
-            }
-            QRadioButton {
-                background-color: #9EFFA5;
-            }
+            }}
+            QRadioButton {{
+                background-color: {self.widgetsColor[0]};
+            }}
         """
 
         # ------------------------------------------------------------------------------------------------------------------Кнопка для закриття меню налаштувань
 
-        button_closeSettings = QPushButton(settings_frame)
-        button_closeSettings.setGeometry(350, 13, 50, 50)
-        button_closeSettings.setText("X")
-        button_closeSettings.show()
+        self.button_closeSettings = QPushButton(settings_frame)
+        self.button_closeSettings.setGeometry(350, 13, 50, 50)
+        self.button_closeSettings.setText("X")
+        self.button_closeSettings.show()
 
         font = QFont()
         font.setBold(True)
         font.setPointSize(15)
-        button_closeSettings.setFont(font)
+        self.button_closeSettings.setFont(font)
 
-        button_closeSettings.setStyleSheet("""
-                                QPushButton {
-                                    background-color: #DAFFDF; /* Колір кнопки */
+        self.button_closeSettings.setStyleSheet(f"""
+                                QPushButton {{
+                                    background-color: {self.widgetsColor[1]}; /* Колір кнопки */
                                     color: #eb8934; /* Колір тексту */
                                     border-radius: 25px; /* Закруглення кутів */
-                                }
-                                QPushButton:hover {
+                                }}
+                                QPushButton:hover {{
                                     background-color: #5dade2; /* Колір кнопки при наведенні */
-                                }
-                                QPushButton:pressed {
+                                }}
+                                QPushButton:pressed {{
                                     background-color: #1f618d; /* Колір кнопки при натисканні */
-                                }
+                                }}
                             """)
-        button_closeSettings.clicked.connect(partial(self.hide_settings, settings_frame, unvisible_frame))
+        self.button_closeSettings.clicked.connect(partial(self.hide_settings, settings_frame, unvisible_frame))
 
-        button_Statistics = QPushButton(settings_frame)
-        button_Statistics.setGeometry(290, 13, 50, 50)
+        self.button_Statistics = QPushButton(settings_frame)
+        self.button_Statistics.setGeometry(290, 13, 50, 50)
         # Завантажуємо іконку
         icon = QIcon("FingerImages/user.png")
-        button_Statistics.setIcon(icon)
-        button_Statistics.setIconSize(QSize(50, 50))  # Налаштовуємо розмір іконки (50x50 пікселів)
-        button_Statistics.show()
+        self.button_Statistics.setIcon(icon)
+        self.button_Statistics.setIconSize(QSize(50, 50))  # Налаштовуємо розмір іконки (50x50 пікселів)
+        self.button_Statistics.show()
 
-        button_Statistics.setFont(font)
+        self.button_Statistics.setFont(font)
 
-        button_Statistics.setStyleSheet("""
-                                        QPushButton {
-                                            background-color: #DAFFDF; /* Колір кнопки */
-                                            color: #eb8934; /* Колір тексту */
-                                            border-radius: 25px; /* Закруглення кутів */
-                                        }
-                                        QPushButton:hover {
-                                            background-color: #5dade2; /* Колір кнопки при наведенні */
-                                        }
-                                        QPushButton:pressed {
-                                            background-color: #1f618d; /* Колір кнопки при натисканні */
-                                        }
-                                    """)
-        button_Statistics.clicked.connect(lambda: self.showUserStatistics(window))
+        self.button_Statistics.setStyleSheet(f"""
+                                QPushButton {{
+                                    background-color: {self.widgetsColor[1]}; /* Колір кнопки */
+                                    color: #eb8934; /* Колір тексту */
+                                    border-radius: 25px; /* Закруглення кутів */
+                                }}
+                                QPushButton:hover {{
+                                    background-color: #5dade2; /* Колір кнопки при наведенні */
+                                }}
+                                QPushButton:pressed {{
+                                    background-color: #1f618d; /* Колір кнопки при натисканні */
+                                }}
+                            """)
+        self.button_Statistics.clicked.connect(lambda: self.showUserStatistics(window))
 
         # ------------------------------------------------------------------------------------------------------------------Підпис "Мова застосунку"
 
         self.label_language = QLabel(settings_frame)
         self.label_language.setGeometry(80, 20, 180, 55)
         self.label_language.setText(self.widgetsText["label_language"][self.widgetsLanguage])
-        self.label_language.setStyleSheet("background-color: #9EFFA5;")
+        self.label_language.setStyleSheet(f"background-color: {self.widgetsColor[0]};")
         self.label_language.show()
 
         font = QFont()
@@ -236,7 +305,7 @@ class SettingsModule:
         self.label_color = QLabel(settings_frame)
         self.label_color.setGeometry(80, 210, 250, 55)
         self.label_color.setText(self.widgetsText["label_color"][self.widgetsLanguage])
-        self.label_color.setStyleSheet("background-color: #9EFFA5;")
+        self.label_color.setStyleSheet(f"background-color: {self.widgetsColor[0]};")
         self.label_color.show()
         self.label_color.setFont(font)
 
@@ -253,8 +322,8 @@ class SettingsModule:
         self.radio_green = QRadioButton(settings_frame)
         self.radio_green.setGeometry(40, 290, 230, 40)
         self.radio_green.setText(self.widgetsText["radio_green"][self.widgetsLanguage])
-        self.radio_green.setChecked(self.color == "green")
-        self.radio_green.toggled.connect(lambda: self.set_color("green"))
+        self.radio_green.setChecked(self.widgetsColor[0] == "#9EFFA5")
+        self.radio_green.toggled.connect(lambda: self.set_color(["9EFFA5", "DAFFDF"]))
         self.radio_green.setStyleSheet(radio_button_style)
         self.radio_green.show()
         self.radio_green.setFont(font)
@@ -264,8 +333,8 @@ class SettingsModule:
         self.radio_purple.setGeometry(40, 340, 230, 40)
         self.radio_purple.setText(self.widgetsText["radio_purple"][self.widgetsLanguage])
         self.radio_purple.setStyleSheet(radio_button_style)
-        self.radio_purple.setChecked(self.color == "purple")
-        self.radio_purple.toggled.connect(lambda: self.set_color("purple"))
+        self.radio_purple.setChecked(self.widgetsColor[0] == "#CA9EFF")
+        self.radio_purple.toggled.connect(lambda: self.set_color(["CA9EFF", "F9DAFF"]))
         self.radio_purple.show()
         self.radio_purple.setFont(font)
         color_group.addButton(self.radio_purple)
@@ -273,8 +342,8 @@ class SettingsModule:
         self.radio_orange = QRadioButton(settings_frame)
         self.radio_orange.setGeometry(40, 390, 230, 40)
         self.radio_orange.setText(self.widgetsText["radio_orange"][self.widgetsLanguage])
-        self.radio_orange.setChecked(self.color == "orange")
-        self.radio_orange.toggled.connect(lambda: self.set_color("orange"))
+        self.radio_orange.setChecked(self.widgetsColor[0] == "#FFCD9E")
+        self.radio_orange.toggled.connect(lambda: self.set_color(["FFCD9E", "FFEBDA"]))
         self.radio_orange.setStyleSheet(radio_button_style)
         self.radio_orange.show()
         self.radio_orange.setFont(font)
@@ -283,8 +352,8 @@ class SettingsModule:
         self.radio_pink = QRadioButton(settings_frame)
         self.radio_pink.setGeometry(40, 440, 230, 40)
         self.radio_pink.setText(self.widgetsText["radio_pink"][self.widgetsLanguage])
-        self.radio_pink.setChecked(self.color == "pink")
-        self.radio_pink.toggled.connect(lambda: self.set_color("pink"))
+        self.radio_pink.setChecked(self.widgetsColor[0] == "#FF9EBB")
+        self.radio_pink.toggled.connect(lambda: self.set_color(["FF9EBB", "FFDAEC"]))
         self.radio_pink.setStyleSheet(radio_button_style)
         self.radio_pink.show()
         self.radio_pink.setFont(font)
@@ -305,7 +374,7 @@ class SettingsModule:
         self.wish_label = QLabel(settings_frame)
         self.wish_label.setGeometry(30, 440, 380, 200)
         self.wish_label.setText(self.widgetsText["wish_label"][self.widgetsLanguage])
-        self.wish_label.setStyleSheet("background-color: #9EFFA5;")
+        self.wish_label.setStyleSheet(f"background-color: {self.widgetsColor[0]};")
         self.wish_label.setFrameShape(QLabel.StyledPanel)
         self.wish_label.setFrameShadow(QLabel.Plain)
         self.wish_label.setAlignment(Qt.AlignCenter)
@@ -316,7 +385,7 @@ class SettingsModule:
         self.wish_text.setGeometry(40, 565, 360, 110)
         self.wish_text.setText(self.wishes[self.widgetsLanguage][self.select_wish])
         self.wish_text.setWordWrap(True)
-        self.wish_text.setStyleSheet("background-color: #9EFFA5;")
+        self.wish_text.setStyleSheet(f"background-color: {self.widgetsColor[0]};")
         self.wish_text.setAlignment(Qt.AlignCenter)
         self.wish_text.show()
         self.wish_text.setFont(font3)
@@ -334,38 +403,40 @@ class SettingsModule:
         self.button_reset.setText(self.widgetsText["button_reset"][self.widgetsLanguage])
         self.button_reset.show()
         self.button_reset.setFont(font3)
-        self.button_reset.setStyleSheet("""
-                    QPushButton {
-                        background-color: #DAFFDF;
+        self.button_reset.setStyleSheet(f"""
+                    QPushButton {{
+                        background-color: {self.widgetsColor[1]};
                         color: black;
                         border-radius: 10px;
-                    }
-                    QPushButton:hover {
+                    }}
+                    QPushButton:hover {{
                         background-color: #5dade2;
-                    }
-                    QPushButton:pressed {
+                    }}
+                    QPushButton:pressed {{
                         background-color: #1f618d;
-                    }
+                    }}
                 """)
+        self.button_reset.clicked.connect(partial(self.set_defaultSettings))
 
         self.button_exit = QPushButton(settings_frame)
         self.button_exit.setGeometry(50, 790, 330, 50)
         self.button_exit.setText(self.widgetsText["button_exit"][self.widgetsLanguage])
         self.button_exit.show()
         self.button_exit.setFont(font3)
-        self.button_exit.setStyleSheet("""
-                    QPushButton {
-                        background-color: #DAFFDF;
+        self.button_exit.setStyleSheet(f"""
+                    QPushButton {{
+                        background-color: {self.widgetsColor[1]};
                         color: black;
                         border-radius: 10px;
-                    }
-                    QPushButton:hover {
+                    }}
+                    QPushButton:hover {{
                         background-color: #5dade2;
-                    }
-                    QPushButton:pressed {
+                    }}
+                    QPushButton:pressed {{
                         background-color: #1f618d;
-                    }
+                    }}
                 """)
+        self.button_exit.clicked.connect(partial(self.exitProgram))
 
         # ------------------------------------------------------------------------------------------------------------------Зміна ієрархії елементів
         self.label_language.raise_()
@@ -374,22 +445,22 @@ class SettingsModule:
         line4.raise_()
         self.radio_pink.raise_()
         self.wish_text.raise_()
-        # self.wish_label.raise_()
         line5.raise_()
-        button_closeSettings.raise_()
-        button_Statistics.raise_()
+        self.button_closeSettings.raise_()
+        self.button_Statistics.raise_()
 
+    # Функція для демонстрації фрейму зі статисткою користувача
     def showUserStatistics(self, window):
         # ------------------------------------------------------------------------------------------------------------------Фрейм відображення статистики
 
         frame_UserStatistics = QFrame(window)
         frame_UserStatistics.setGeometry(0, 0, 1315, 917)
         frame_UserStatistics.show()
-        frame_UserStatistics.setStyleSheet("""
-                            QFrame {
-                                background-color: #9EFFA5; /* Фон картки */
+        frame_UserStatistics.setStyleSheet(f"""
+                            QFrame {{
+                                background-color: {self.widgetsColor[0]}; /* Фон картки */
                                 border-radius: 10px; /* Закруглені кути */
-                            }
+                            }}
                         """)
 
         # ------------------------------------------------------------------------------------------------------------------Кнопка для повернення на головну сторінку
@@ -410,18 +481,18 @@ class SettingsModule:
         button_return.setIconSize(QSize(50, 50))  # Налаштовуємо розмір іконки (50x50 пікселів)
         button_return.show()
 
-        button_return.setStyleSheet("""
-                                QPushButton {
-                                    background-color: #DAFFDF; /* Колір кнопки */
+        button_return.setStyleSheet(f"""
+                                QPushButton {{
+                                    background-color: {self.widgetsColor[1]}; /* Колір кнопки */
                                     color: #eb8934; /* Колір тексту */
                                     border-radius: 30px; /* Закруглення кутів */
-                                }
-                                QPushButton:hover {
+                                }}
+                                QPushButton:hover {{
                                     background-color: #5dade2; /* Колір кнопки при наведенні */
-                                }
-                                QPushButton:pressed {
+                                }}
+                                QPushButton:pressed {{
                                     background-color: #1f618d; /* Колір кнопки при натисканні */
-                                }
+                                }}
                             """)
         button_return.clicked.connect(
             partial(self.hide_frame_UserStatistics, frame_UserStatistics))
@@ -441,12 +512,12 @@ class SettingsModule:
         title_window.setFrameShape(QLabel.StyledPanel)
         title_window.setFrameShadow(QLabel.Plain)
         title_window.setAlignment(Qt.AlignCenter)
-        title_window.setStyleSheet("""
-                    QLabel {
-                        background-color: #DAFFDF; /* Колір фону */
+        title_window.setStyleSheet(f"""
+                    QLabel {{
+                        background-color: {self.widgetsColor[1]}; /* Колір фону */
                         color: black; /* Колір тексту */
                         border-radius: 10px; /* Закруглення кутів */
-                    }
+                    }}
                 """)
 
         # ------------------------------------------------------------------------------------------------------------------Кнопка Довідки
@@ -461,18 +532,18 @@ class SettingsModule:
         font2.setPointSize(18)
         button_help.setFont(font2)
 
-        button_help.setStyleSheet("""
-                        QPushButton {
-                            background-color: #DAFFDF; /* Колір кнопки */
+        button_help.setStyleSheet(f"""
+                        QPushButton {{
+                            background-color: {self.widgetsColor[1]}; /* Колір кнопки */
                             color: #eb8934; /* Колір тексту */
                             border-radius: 30px; /* Закруглення кутів */
-                        }
-                        QPushButton:hover {
+                        }}
+                        QPushButton:hover {{
                             background-color: #5dade2; /* Колір кнопки при наведенні */
-                        }
-                        QPushButton:pressed {
+                        }}
+                        QPushButton:pressed {{
                             background-color: #1f618d; /* Колір кнопки при натисканні */
-                        }
+                        }}
                     """)
 
         # ------------------------------------------------------------------------------------------------------------------Заголовки
@@ -490,12 +561,12 @@ class SettingsModule:
         title_facts.setFrameShape(QLabel.StyledPanel)
         title_facts.setFrameShadow(QLabel.Plain)
         title_facts.setAlignment(Qt.AlignCenter)
-        title_facts.setStyleSheet("""
-                            QLabel {
-                                background-color: #DAFFDF; /* Колір фону */
+        title_facts.setStyleSheet(f"""
+                            QLabel {{
+                                background-color: {self.widgetsColor[1]}; /* Колір фону */
                                 color: black; /* Колір тексту */
                                 border-radius: 10px; /* Закруглення кутів */
-                            }
+                            }}
                         """)
 
         title_correctGestures = QLabel(frame_UserStatistics)
@@ -508,12 +579,12 @@ class SettingsModule:
         title_correctGestures.setFrameShape(QLabel.StyledPanel)
         title_correctGestures.setFrameShadow(QLabel.Plain)
         title_correctGestures.setAlignment(Qt.AlignCenter)
-        title_correctGestures.setStyleSheet("""
-                                    QLabel {
-                                        background-color: #DAFFDF; /* Колір фону */
+        title_correctGestures.setStyleSheet(f"""
+                                    QLabel {{
+                                        background-color: {self.widgetsColor[1]}; /* Колір фону */
                                         color: black; /* Колір тексту */
                                         border-radius: 10px; /* Закруглення кутів */
-                                    }
+                                    }}
                                 """)
 
         # ------------------------------------------------------------------------------------------------------------------Фрейм цікавих фактів
@@ -521,12 +592,12 @@ class SettingsModule:
         frame_facts = QFrame(frame_UserStatistics)
         frame_facts.setGeometry(48, 210, 470, 450)
         frame_facts.show()
-        frame_facts.setStyleSheet("""
-                                    QFrame {
-                                        background-color: #DAFFDF; /* Фон картки */
+        frame_facts.setStyleSheet(f"""
+                                    QFrame {{
+                                        background-color: {self.widgetsColor[1]}; /* Фон картки */
                                         border-radius: 10px; /* Закруглені кути */
                                         border: 5 solid black;
-                                    }
+                                    }}
                                 """)
 
         label_mode = QLabel(frame_facts)
@@ -539,13 +610,13 @@ class SettingsModule:
         font4.setPointSize(15)
         label_mode.setFont(font4)
 
-        label_mode.setStyleSheet("""
-                                            QLabel {
-                                                background-color: #DAFFDF; /* Колір фону */
-                                                color: black; /* Колір тексту */
-                                                border: none;
-                                            }
-                                        """)
+        label_mode.setStyleSheet(f"""
+                                    QLabel {{
+                                        background-color: {self.widgetsColor[1]}; /* Колір фону */
+                                        color: black; /* Колір тексту */
+                                        border: none;
+                                    }}
+                                """)
 
         UserModes = {
             0: ["Жести однією рукою", "Жести двума руками", "Користувацький рівень"],
@@ -565,13 +636,13 @@ class SettingsModule:
         label_modeAnswer.setFrameShadow(QLabel.Plain)
         label_modeAnswer.setAlignment(Qt.AlignCenter)
 
-        label_modeAnswer.setStyleSheet("""
-                                                    QLabel {
-                                                        background-color: #DAFFDF; /* Колір фону */
-                                                        color: black; /* Колір тексту */
-                                                        border: none;
-                                                    }
-                                                """)
+        label_modeAnswer.setStyleSheet(f"""
+                                            QLabel {{
+                                                background-color: {self.widgetsColor[1]}; /* Колір фону */
+                                                color: black; /* Колір тексту */
+                                                border: none;
+                                            }}
+                                        """)
         # --------------------------------------------------
         label_numberSessionsLastMonth = QLabel(frame_facts)
         label_numberSessionsLastMonth.setGeometry(30, 170, 300, 55)
@@ -580,12 +651,12 @@ class SettingsModule:
 
         label_numberSessionsLastMonth.setFont(font4)
 
-        label_numberSessionsLastMonth.setStyleSheet("""
-                                                    QLabel {
-                                                        background-color: #DAFFDF; /* Колір фону */
+        label_numberSessionsLastMonth.setStyleSheet(f"""
+                                                    QLabel {{
+                                                        background-color: {self.widgetsColor[1]}; /* Колір фону */
                                                         color: black; /* Колір тексту */
                                                         border: none;
-                                                    }
+                                                    }}
                                                 """)
 
         label_numberSessionsLastMonthAnswer = QLabel(frame_facts)
@@ -614,13 +685,13 @@ class SettingsModule:
 
         label_AverageTimeSessions.setFont(font4)
 
-        label_AverageTimeSessions.setStyleSheet("""
-                                                            QLabel {
-                                                                background-color: #DAFFDF; /* Колір фону */
-                                                                color: black; /* Колір тексту */
-                                                                border: none;
-                                                            }
-                                                        """)
+        label_AverageTimeSessions.setStyleSheet(f"""
+                                                    QLabel {{
+                                                        background-color: {self.widgetsColor[1]}; /* Колір фону */
+                                                        color: black; /* Колір тексту */
+                                                        border: none;
+                                                    }}
+                                                """)
 
         label_AverageTimeSessionsAnswer = QLabel(frame_facts)
         label_AverageTimeSessionsAnswer.setGeometry(30, 365, 410, 55)
@@ -645,12 +716,12 @@ class SettingsModule:
         frame_correctGestures = QFrame(frame_UserStatistics)
         frame_correctGestures.setGeometry(796, 210, 470, 450)
         frame_correctGestures.show()
-        frame_correctGestures.setStyleSheet("""
-                                            QFrame {
-                                                background-color: #DAFFDF; /* Фон картки */
+        frame_correctGestures.setStyleSheet(f"""
+                                            QFrame {{
+                                                background-color: {self.widgetsColor[1]}; /* Фон картки */
                                                 border-radius: 10px; /* Закруглені кути */
                                                 border: 5 solid black;
-                                            }
+                                            }}
                                         """)
         y = 0
         # Прогрес-бари та підписи
@@ -706,14 +777,15 @@ class SettingsModule:
         title_outDeveloper.setFrameShape(QLabel.StyledPanel)
         title_outDeveloper.setFrameShadow(QLabel.Plain)
         title_outDeveloper.setAlignment(Qt.AlignCenter)
-        title_outDeveloper.setStyleSheet("""
-                                    QLabel {
-                                        background-color: #DAFFDF; /* Колір фону */
+        title_outDeveloper.setStyleSheet(f"""
+                                    QLabel {{
+                                        background-color: {self.widgetsColor[1]}; /* Колір фону */
                                         color: black; /* Колір тексту */
                                         border-radius: 10px; /* Закруглення кутів */
-                                    }
+                                    }}
                                 """)
 
+    # Функція для повернення значення улюбленого режиму гри користувача
     def get_userLikeMode(self):
         userModes = {
             "Жести однією рукою": 0,
@@ -724,21 +796,25 @@ class SettingsModule:
         result = "Жести однією рукою"
         return userModes[result]
 
+    # Функція для повернення значення середньої кількості сесій користувача за місяць
     def get_NumberSessionLastMonth(self):
         # Додати запит до бд
         result = 15
         return str(result)
 
+    # Функція для повернення значення середньої часу сесій користувача за місяць
     def get_AverageTimeSession(self):
         # Додати запит до бд
         result = 26
         return str(result)
 
+    # Функція для повернення значення найбільш правильних жестів користувача
     def get_correctGestures(self):
         # Додати запит до бд
         result = [["FingerImages/both_gesture_heart.jpg", 7, 10], ["FingerImages/gesture_oke.jpg", 5, 10], ["FingerImages/both_gesture_uwu.jpg", 2, 10]]
         return result
 
+    # Функція для того, щоб сховати фрейм статистки користувача
     def hide_frame_UserStatistics(self, frame_UserStatistics):
         print("close: frame_UserStatistics")
         frame_UserStatistics.hide()
@@ -747,3 +823,14 @@ class SettingsModule:
     def hide_settings(self, settings_frame, unvisible_frame):
         settings_frame.hide()
         unvisible_frame.hide()
+
+    # Функція для встановлення початкових значень налаштувань
+    def set_defaultSettings(self):
+        self.set_color(["9EFFA5", "DAFFDF"])
+        self.radio_green.setChecked(True)
+        self.set_language(0)
+        self.radio_ukrainian.setChecked(True)
+
+    # Функція для виходу з застосунку
+    def exitProgram(self):
+        QApplication.quit()

@@ -10,7 +10,7 @@ import LelelCounting, SettingsModule, RebuildsComponents, UserLevelsModule
 class MainWindow():
     def __init__(self):
         self.current_game_level = "Undefined123"
-        self.widgetsColor = "#DAFFDF"
+        self.widgetsColor = ["#9EFFA5", "#DAFFDF"]
         self.widgetsLanguage = 0
         self.widgetsText = {
             "title_window": ['Потренуємо ваші нейрони', 'ToTrainYourNeurons'],
@@ -22,15 +22,20 @@ class MainWindow():
             "textForLevels": ['Рівень ', 'Level ']
         }
         # Компоненти, що залежні від налаштувань додатку
+        self.window = None
         self.title_window = None
         self.level_checking = None
         self.select_Level = None
         self.button_help = None
+        self.settings_frame = None
+        self.button_settings = None
 
+        # Оголошення зв'язків з модулями застосунку
         self.levelCounting = LelelCounting.CreateLevel()
         self.MainWindowLink = None
         self.settingsModule = None
 
+    # Функція для ініціалізації зв'язку з модулем налаштувань
     def setMainWindowLink(self, MainWindowLink):
         self.MainWindowLink = MainWindowLink
         self.settingsModule = SettingsModule.SettingsModule(self.MainWindowLink, self.levelCounting)
@@ -42,43 +47,82 @@ class MainWindow():
         print(f"class MainWindow(): def setLanguage(self, Language): {Language}")
         self.update_ui()
 
+    # Функція для зміни мови додатку
+    def setColor(self, color):
+        self.widgetsColor = color
+        print(f"class MainWindow(): def setColor(self, color): {color}")
+        self.update_ui()
+
     # Функція для оновлення візуалу компонентів вікна
     def update_ui(self):
+        frame_style = f"""
+                        QFrame {{
+                                background-color: {self.widgetsColor[0]}; /* Фон картки #9EFFA5; */
+                                border-radius: 10px; /* Закруглені кути */
+                            }}
+                        """
+        button_style = f"""
+                        QPushButton {{
+                            background-color: {self.widgetsColor[0]}; /* Колір кнопки */
+                            color: #eb8934; /* Колір тексту */
+                            border-radius: 30px; /* Закруглення кутів */
+                        }}
+                        QPushButton:hover {{
+                            background-color: #5dade2; /* Колір кнопки при наведенні */
+                        }}
+                        QPushButton:pressed {{
+                            background-color: #1f618d; /* Колір кнопки при натисканні */
+                        }}
+                    """
         if self.title_window:
             self.title_window.setText(self.widgetsText["title_window"][self.widgetsLanguage])
-
+            self.title_window.setStyleSheet(f"""
+                            QLabel {{
+                                background-color: {self.widgetsColor[0]}; /* Колір фону */
+                                color: black; /* Колір тексту */
+                                border-radius: 10px; /* Закруглення кутів */
+                            }}
+                        """)
         self.fill_frame_level_checking()
+        self.settings_frame.setStyleSheet(frame_style)
+        self.button_settings.setStyleSheet(button_style)
+        self.button_help.setStyleSheet(button_style)
+        self.select_Level.setStyleSheet(frame_style)
+        self.window.setStyleSheet(f"""
+                    QMainWindow {{
+                        background-color: {self.widgetsColor[1]}; /* Колір вікна */
+                    }}
+                """)
 
     # Головна функція
     def mainWindow(self, Main):
         app = QApplication(sys.argv)
-        window = QMainWindow()
+        self.window = QMainWindow()
 
-        window.setWindowTitle("ToTrainYourNeurons")
-        window.setGeometry(250, 100, 1315, 917)
+        self.window.setWindowTitle("ToTrainYourNeurons")
+        self.window.setGeometry(250, 100, 1315, 917)
 
-        window.setStyleSheet("""
-                    QMainWindow {
-                        background-color: #DAFFDF; /* Колір вікна */
-                    }
+        self.window.setStyleSheet(f"""
+                    QMainWindow {{
+                        background-color: {self.widgetsColor[1]}; /* Колір вікна */
+                    }}
                 """)
 
         # ------------------------------------------------------------------------------------------------------------------Фрейм Налаштувань
 
-        settings_frame = QFrame(window)
-        # settings_frame.setGeometry(48, 23, 390, 840)
-        settings_frame.setGeometry(0, 0, 438, 863)
-        settings_frame.hide()
-        settings_frame.setStyleSheet("""
-                        QFrame {
-                            background-color: #9EFFA5; /* Фон картки #9EFFA5; */
+        self.settings_frame = QFrame(self.window)
+        self.settings_frame.setGeometry(0, 0, 438, 863)
+        self.settings_frame.hide()
+        self.settings_frame.setStyleSheet(f"""
+                        QFrame {{
+                            background-color: {self.widgetsColor[0]}; /* Фон картки #9EFFA5; */
                             border-radius: 10px; /* Закруглені кути */
-                        }
+                        }}
                     """)
 
         # ------------------------------------------------------------------------------------------------------------------Фрейм Прозорий
 
-        unvisible_frame = RebuildsComponents.ClickableFrame(window)
+        unvisible_frame = RebuildsComponents.ClickableFrame(self.window)
         unvisible_frame.setGeometry(0, 0, 1315, 917)
         unvisible_frame.hide()
         unvisible_frame.setStyleSheet("""
@@ -94,39 +138,38 @@ class MainWindow():
 
         # ------------------------------------------------------------------------------------------------------------------Кнопка Налаштувань
 
-        button_settings = QPushButton(window)
-        button_settings.setGeometry(48, 23, 60, 60)
+        self.button_settings = QPushButton(self.window)
+        self.button_settings.setGeometry(48, 23, 60, 60)
         # Завантажуємо іконку
         icon = QIcon("FingerImages/settings.png")
-        button_settings.setIcon(icon)
-        button_settings.setIconSize(QSize(50, 50))  # Налаштовуємо розмір іконки (50x50 пікселів)
+        self.button_settings.setIcon(icon)
+        self.button_settings.setIconSize(QSize(50, 50))  # Налаштовуємо розмір іконки (50x50 пікселів)
 
         font = QFont()
         font.setBold(True)
         font.setPointSize(14)
-        button_settings.setFont(font)
+        self.button_settings.setFont(font)
 
-        button_settings.setStyleSheet("""
-                QPushButton {
-                    background-color: #9EFFA5; /* Колір кнопки */
-                    color: black; /* Колір тексту */
+        self.button_settings.setStyleSheet(f"""
+                QPushButton {{
+                    background-color: {self.widgetsColor[0]}; /* Колір кнопки */
+                    color: #eb8934; /* Колір тексту */
                     border-radius: 30px; /* Закруглення кутів */
-                }
-                QPushButton:hover {
+                }}
+                QPushButton:hover {{
                     background-color: #5dade2; /* Колір кнопки при наведенні */
-                }
-                QPushButton:pressed {
+                }}
+                QPushButton:pressed {{
                     background-color: #1f618d; /* Колір кнопки при натисканні */
-                }
+                }}
             """)
 
-        # settingsModule = SettingsModule.SettingsModule(main)
         # Підключення сигналу "clicked" до обробника
-        button_settings.clicked.connect(lambda: self.settingsModule.show_settings(settings_frame, unvisible_frame, window))
+        self.button_settings.clicked.connect(lambda: self.settingsModule.show_settings(self.settings_frame, unvisible_frame, self.window))
 
         # ------------------------------------------------------------------------------------------------------------------Назва програми
 
-        self.title_window = QLabel(window)
+        self.title_window = QLabel(self.window)
         self.title_window.setGeometry(468, 23, 380, 55)
         self.title_window.setText(self.widgetsText["title_window"][self.widgetsLanguage])
 
@@ -138,17 +181,17 @@ class MainWindow():
         self.title_window.setFrameShape(QLabel.StyledPanel)
         self.title_window.setFrameShadow(QLabel.Plain)
         self.title_window.setAlignment(Qt.AlignCenter)
-        self.title_window.setStyleSheet("""
-                QLabel {
-                    background-color: #9EFFA5; /* Колір фону */
+        self.title_window.setStyleSheet(f"""
+                QLabel {{
+                    background-color: {self.widgetsColor[0]}; /* Колір фону */
                     color: black; /* Колір тексту */
                     border-radius: 10px; /* Закруглення кутів */
-                }
+                }}
             """)
 
         # ------------------------------------------------------------------------------------------------------------------Кнопка Довідки
 
-        self.button_help = QPushButton(window)
+        self.button_help = QPushButton(self.window)
         self.button_help.setGeometry(1206, 18, 60, 60)
         self.button_help.setText("?")
 
@@ -157,35 +200,35 @@ class MainWindow():
         font.setPointSize(18)
         self.button_help.setFont(font)
 
-        self.button_help.setStyleSheet("""
-                    QPushButton {
-                        background-color: #9EFFA5; /* Колір кнопки */
-                        color: #eb8934; /* Колір тексту */
-                        border-radius: 30px; /* Закруглення кутів */
-                    }
-                    QPushButton:hover {
-                        background-color: #5dade2; /* Колір кнопки при наведенні */
-                    }
-                    QPushButton:pressed {
-                        background-color: #1f618d; /* Колір кнопки при натисканні */
-                    }
-                """)
+        self.button_help.setStyleSheet(f"""
+                QPushButton {{
+                    background-color: {self.widgetsColor[0]}; /* Колір кнопки */
+                    color: #eb8934; /* Колір тексту */
+                    border-radius: 30px; /* Закруглення кутів */
+                }}
+                QPushButton:hover {{
+                    background-color: #5dade2; /* Колір кнопки при наведенні */
+                }}
+                QPushButton:pressed {{
+                    background-color: #1f618d; /* Колір кнопки при натисканні */
+                }}
+            """)
 
         # ------------------------------------------------------------------------------------------------------------------Фрейм вибірки рівня
 
-        self.select_Level = QFrame(window)
+        self.select_Level = QFrame(self.window)
         self.select_Level.setGeometry(0, 0, 1315, 917)
         self.select_Level.hide()
-        self.select_Level.setStyleSheet("""
-                    QFrame {
-                        background-color: #9EFFA5; /* Фон картки */
+        self.select_Level.setStyleSheet(f"""
+                    QFrame {{
+                        background-color: {self.widgetsColor[0]}; /* Фон картки */
                         border-radius: 10px; /* Закруглені кути */
-                    }
+                    }}
                 """)
 
         # ------------------------------------------------------------------------------------------------------------------Фрейм з картками для вибору режиму тренування
 
-        self.level_checking = QScrollArea(window)
+        self.level_checking = QScrollArea(self.window)
         self.level_checking.setGeometry(48, 90, 1216, 800)
 
         self.level_checking.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)  # Горизонтальна прокрутка
@@ -207,10 +250,10 @@ class MainWindow():
         self.title_window.raise_()
         self.button_help.raise_()
         unvisible_frame.raise_()
-        settings_frame.raise_()
+        self.settings_frame.raise_()
 
         # ------------------------------------------------------------------------------------------------------------------Закриття програми
-        window.show()
+        self.window.show()
         self.setMainWindowLink(Main)
         sys.exit(app.exec_())
 
@@ -254,20 +297,20 @@ class MainWindow():
             button_start = QPushButton(card)
             button_start.setGeometry(30, 393 + 100, 320, 55)
             button_start.setText(self.widgetsText["button_start"][self.widgetsLanguage])
-            button_start.setStyleSheet("""
-                                    QPushButton {
-                                        background-color: #DAFFDF; /* Колір кнопки */
+            button_start.setStyleSheet(f"""
+                                    QPushButton {{
+                                        background-color: {self.widgetsColor[1]}; /* Колір кнопки */
                                         color: black; /* Колір тексту */
                                         border-radius: 10px; /* Закруглення кутів */
                                         font-size: 17px;
                                         font-weight: bold;
-                                    }
-                                    QPushButton:hover {
+                                    }}
+                                    QPushButton:hover {{
                                         background-color: #5dade2; /* Колір кнопки при наведенні */
-                                    }
-                                    QPushButton:pressed {
+                                    }}
+                                    QPushButton:pressed {{
                                         background-color: #1f618d; /* Колір кнопки при натисканні */
-                                    }
+                                    }}
                                 """)
             # Підключення сигналу "clicked" до обробника
             if not card.objectName() == "Користувацький рівень" and not card.objectName() == "User level":
@@ -300,25 +343,25 @@ class MainWindow():
             return False
 
         self.select_Level.show()
-        self.title_window.setStyleSheet("""
-                    QLabel {
-                        background-color: #DAFFDF; /* Колір фону */
+        self.title_window.setStyleSheet(f"""
+                    QLabel {{
+                        background-color: {self.widgetsColor[1]}; /* Колір фону */
                         color: black; /* Колір тексту */
                         border-radius: 10px; /* Закруглення кутів */
-                    }
+                    }}
                 """)
-        self.button_help.setStyleSheet("""
-                        QPushButton {
-                            background-color: #DAFFDF; /* Колір кнопки */
+        self.button_help.setStyleSheet(f"""
+                        QPushButton {{
+                            background-color: {self.widgetsColor[1]}; /* Колір кнопки */
                             color: #eb8934; /* Колір тексту */
                             border-radius: 30px; /* Закруглення кутів */
-                        }
-                        QPushButton:hover {
+                        }}
+                        QPushButton:hover {{
                             background-color: #5dade2; /* Колір кнопки при наведенні */
-                        }
-                        QPushButton:pressed {
+                        }}
+                        QPushButton:pressed {{
                             background-color: #1f618d; /* Колір кнопки при натисканні */
-                        }
+                        }}
                     """)
 
         self.duplicate_card_to_frame(card)
@@ -347,18 +390,18 @@ class MainWindow():
         font.setPointSize(18)
         button_return.setFont(font)
 
-        button_return.setStyleSheet("""
-                            QPushButton {
-                                background-color: #DAFFDF; /* Колір кнопки */
+        button_return.setStyleSheet(f"""
+                            QPushButton {{
+                                background-color: {self.widgetsColor[1]}; /* Колір кнопки */
                                 color: #eb8934; /* Колір тексту */
                                 border-radius: 30px; /* Закруглення кутів */
-                            }
-                            QPushButton:hover {
+                            }}
+                            QPushButton:hover {{
                                 background-color: #5dade2; /* Колір кнопки при наведенні */
-                            }
-                            QPushButton:pressed {
+                            }}
+                            QPushButton:pressed {{
                                 background-color: #1f618d; /* Колір кнопки при натисканні */
-                            }
+                            }}
                         """)
         button_return.clicked.connect(
             partial(self.hide_select_level_click))
@@ -368,11 +411,11 @@ class MainWindow():
         levels = QFrame(self.select_Level)
         levels.setGeometry(490, 100, 770, 750)
         levels.show()
-        levels.setStyleSheet("""
-                        QFrame {
-                            background-color: #DAFFDF; /* Фон картки */
+        levels.setStyleSheet(f"""
+                        QFrame {{
+                            background-color: {self.widgetsColor[1]}; /* Фон картки */
                             border-radius: 10px; /* Закруглені кути */
-                        }
+                        }}
                     """)
 
         # ------------------------------------------------------------------------------------------------------------------Фрейм для відображення статусу рівня
@@ -453,11 +496,11 @@ class MainWindow():
         level_cv_frame = QFrame(self.select_Level)
         level_cv_frame.setGeometry(0, 0, 1315, 917)
         level_cv_frame.hide()
-        level_cv_frame.setStyleSheet("""
-                        QFrame {
-                            background-color: #9EFFA5; /* Фон картки */
+        level_cv_frame.setStyleSheet(f"""
+                        QFrame {{
+                            background-color: {self.widgetsColor[0]}; /* Фон картки */
                             border-radius: 10px; /* Закруглені кути */
-                        }
+                        }}
                     """)
 
         # ------------------------------------------------------------------------------------------------------------------Кнопка для того, щоб розпочати тренування
@@ -466,21 +509,21 @@ class MainWindow():
         start_level_button.setGeometry(430, 80, 170, 80)
         start_level_button.setText(self.widgetsText["start_level_button"][self.widgetsLanguage])
         start_level_button.setObjectName("start_level_button")
-        start_level_button.setStyleSheet("""
-                    QPushButton {
-                        background-color: #9EFFA5; /* Фон кнопки */
+        start_level_button.setStyleSheet(f"""
+                    QPushButton {{
+                        background-color: {self.widgetsColor[0]}; /* Фон кнопки */
                         border-radius: 10px; /* Закруглені кути */
                         border: 3px solid black;
-                        border-color: #9EFFA5;
+                        border-color: {self.widgetsColor[0]};
                         font-size: 25px;
                         font-weight: bold;
-                    }
-                    QPushButton:hover {
+                    }}
+                    QPushButton:hover {{
                         border-color: #5dade2; /* Колір кнопки при наведенні */
-                    }
-                    QPushButton:pressed {
+                    }}
+                    QPushButton:pressed {{
                         border-color: #1f618d; /* Колір кнопки при натисканні */
-                    }
+                    }}
                 """)
 
         self.levelCounting.setDefaultParameters()
@@ -493,25 +536,25 @@ class MainWindow():
     def hide_select_level_click(self):
         print("Кнопку натиснуто!")
         self.select_Level.hide()
-        self.title_window.setStyleSheet("""
-                    QLabel {
-                        background-color: #9EFFA5; /* Колір фону */
+        self.title_window.setStyleSheet(f"""
+                    QLabel {{
+                        background-color: {self.widgetsColor[0]}; /* Колір фону */
                         color: black; /* Колір тексту */
                         border-radius: 10px; /* Закруглення кутів */
-                    }
+                    }}
                 """)
-        self.button_help.setStyleSheet("""
-                        QPushButton {
-                            background-color: #9EFFA5; /* Колір кнопки */
+        self.button_help.setStyleSheet(f"""
+                        QPushButton {{
+                            background-color: {self.widgetsColor[0]}; /* Колір кнопки */
                             color: #eb8934; /* Колір тексту */
                             border-radius: 30px; /* Закруглення кутів */
-                        }
-                        QPushButton:hover {
+                        }}
+                        QPushButton:hover {{
                             background-color: #5dade2; /* Колір кнопки при наведенні */
-                        }
-                        QPushButton:pressed {
+                        }}
+                        QPushButton:pressed {{
                             background-color: #1f618d; /* Колір кнопки при натисканні */
-                        }
+                        }}
                     """)
 
     # Функція для створення картки виду вправ
@@ -519,11 +562,11 @@ class MainWindow():
         card = QFrame(parent)
         card.setObjectName(title_text)
         card.setFixedSize(378, 750)  # Фіксований розмір картки
-        card.setStyleSheet("""
-                    QFrame {
-                        background-color: #9EFFA5; /* Фон картки */
+        card.setStyleSheet(f"""
+                    QFrame {{
+                        background-color: {self.widgetsColor[0]}; /* Фон картки */
                         border-radius: 10px; /* Закруглені кути */
-                    }
+                    }}
                 """)
 
         # Наповнення картки
@@ -540,7 +583,7 @@ class MainWindow():
         text_card.setWordWrap(True)
         text_card.setGeometry(30, 80 + 100, 320, 300)
         text_card.setObjectName("description_label")  # Задання імені
-        text_card.setStyleSheet("font-size: 17px; font-weight: bold; background-color: #DAFFDF;"
+        text_card.setStyleSheet(f"font-size: 17px; font-weight: bold; background-color: {self.widgetsColor[1]};"
                                 " /* Колір фону */ padding: 5px; /* Відступи всередині рамки */")
 
         # ------------------------------------------------------------------------------------------------------------------Фото картки
@@ -585,22 +628,22 @@ class MainWindow():
             button_level = QPushButton(levels)
             button_level.setGeometry(45 + stepX, stepY, 200, 180)
             button_level.setObjectName("button_level_" + str(num))  # Задання імені
-            button_level.setStyleSheet("""
-                QPushButton {
-                    background-color: #9EFFA5; /* Фон кнопки */
+            button_level.setStyleSheet(f"""
+                QPushButton {{
+                    background-color: {self.widgetsColor[0]}; /* Фон кнопки */
                     border-radius: 10px; /* Закруглені кути */
                     border: 3px solid black;
-                    border-color: #9EFFA5;
+                    border-color: {self.widgetsColor[0]};
                     font-size: 40px;
                     font-weight: bold;
                     padding-top: 20px;
-                }
-                QPushButton:hover {
+                }}
+                QPushButton:hover {{
                     border-color: #5dade2; /* Колір кнопки при наведенні */
-                }
-                QPushButton:pressed {
+                }}
+                QPushButton:pressed {{
                     border-color: #1f618d; /* Колір кнопки при натисканні */
-                }
+                }}
             """)
 
             if stepY == 40:
@@ -636,44 +679,44 @@ class MainWindow():
         if current_button_level.isChecked():
             print("select_level_click(): " + current_button_level.objectName())
             current_button_level.setChecked(True)
-            current_button_level.setStyleSheet("""
-                        QPushButton {
-                            background-color: #9EFFA5; /* Фон кнопки */
+            current_button_level.setStyleSheet(f"""
+                        QPushButton {{
+                            background-color: {self.widgetsColor[0]}; /* Фон кнопки */
                             border-radius: 10px; /* Закруглені кути */
                             border: 3px solid black;
                             border-color: #6085ff;
                             font-size: 40px;
                             font-weight: bold;
                             padding-top: 20px;
-                        }
-                        QPushButton:hover {
+                        }}
+                        QPushButton:hover {{
                             border-color: lime; /* Колір кнопки при наведенні */
-                        }
-                        QPushButton:pressed {
+                        }}
+                        QPushButton:pressed {{
                             border-color: #1f618d; /* Колір кнопки при натисканні */
-                        }
+                        }}
                     """)
             level_status.show()
             self.current_game_level = current_button_level.objectName()
         else:
             level_status.hide()
             current_button_level.setChecked(False)
-            current_button_level.setStyleSheet("""
-                        QPushButton {
-                            background-color: #9EFFA5; /* Фон кнопки */
+            current_button_level.setStyleSheet(f"""
+                        QPushButton {{
+                            background-color: {self.widgetsColor[0]}; /* Фон кнопки */
                             border-radius: 10px; /* Закруглені кути */
                             border: 3px solid black;
-                            border-color: #9EFFA5;
+                            border-color: {self.widgetsColor[0]};
                             font-size: 40px;
                             font-weight: bold;
                             padding-top: 20px;
-                        }
-                        QPushButton:hover {
+                        }}
+                        QPushButton:hover {{
                             border-color: #5dade2; /* Колір кнопки при наведенні */
-                        }
-                        QPushButton:pressed {
+                        }}
+                        QPushButton:pressed {{
                             border-color: #1f618d; /* Колір кнопки при натисканні */
-                        }
+                        }}
                     """)
 
             # Розблокування інших кнопок, якщо поточна кнопка відключається
@@ -690,32 +733,32 @@ class MainWindow():
         level_cv_frame = QFrame(self.select_Level)
         level_cv_frame.setGeometry(0, 0, 1315, 917)
         level_cv_frame.hide()
-        level_cv_frame.setStyleSheet("""
-                            QFrame {
-                                background-color: #9EFFA5; /* Фон картки */
+        level_cv_frame.setStyleSheet(f"""
+                            QFrame {{
+                                background-color: {self.widgetsColor[0]}; /* Фон картки */
                                 border-radius: 10px; /* Закруглені кути */
-                            }
+                            }}
                         """)
 
-        self.title_window.setStyleSheet("""
-                        QLabel {
-                            background-color: #DAFFDF; /* Колір фону */
+        self.title_window.setStyleSheet(f"""
+                        QLabel {{
+                            background-color: {self.widgetsColor[1]}; /* Колір фону */
                             color: black; /* Колір тексту */
                             border-radius: 10px; /* Закруглення кутів */
-                        }
+                        }}
                     """)
-        self.button_help.setStyleSheet("""
-                            QPushButton {
-                                background-color: #DAFFDF; /* Колір кнопки */
+        self.button_help.setStyleSheet(f"""
+                            QPushButton {{
+                                background-color: {self.widgetsColor[1]}; /* Колір кнопки */
                                 color: #eb8934; /* Колір тексту */
                                 border-radius: 30px; /* Закруглення кутів */
-                            }
-                            QPushButton:hover {
+                            }}
+                            QPushButton:hover {{
                                 background-color: #5dade2; /* Колір кнопки при наведенні */
-                            }
-                            QPushButton:pressed {
+                            }}
+                            QPushButton:pressed {{
                                 background-color: #1f618d; /* Колір кнопки при натисканні */
-                            }
+                            }}
                         """)
 
         self.duplicate_card_to_frame(card)
@@ -744,18 +787,18 @@ class MainWindow():
         font.setPointSize(18)
         button_return.setFont(font)
 
-        button_return.setStyleSheet("""
-                                QPushButton {
-                                    background-color: #DAFFDF; /* Колір кнопки */
+        button_return.setStyleSheet(f"""
+                                QPushButton {{
+                                    background-color: {self.widgetsColor[1]}; /* Колір кнопки */
                                     color: #eb8934; /* Колір тексту */
                                     border-radius: 30px; /* Закруглення кутів */
-                                }
-                                QPushButton:hover {
+                                }}
+                                QPushButton:hover {{
                                     background-color: #5dade2; /* Колір кнопки при наведенні */
-                                }
-                                QPushButton:pressed {
+                                }}
+                                QPushButton:pressed {{
                                     background-color: #1f618d; /* Колір кнопки при натисканні */
-                                }
+                                }}
                             """)
         button_return.clicked.connect(
             partial(self.hide_select_level_click))
@@ -765,16 +808,16 @@ class MainWindow():
         scenario = QFrame(self.select_Level)
         scenario.setGeometry(490, 100, 770, 750)
         scenario.show()
-        scenario.setStyleSheet("""
-                            QFrame {
-                                background-color: #DAFFDF; /* Фон картки */
+        scenario.setStyleSheet(f"""
+                            QFrame {{
+                                background-color: {self.widgetsColor[1]}; /* Фон картки */
                                 border-radius: 10px; /* Закруглені кути */
-                            }
+                            }}
                         """)
 
         # ------------------------------------------------------------------------------------------------------------------Фрейм розпочати користувацький рівень
 
-        userLevel = UserLevelsModule.UserLevelsModule(self.widgetsLanguage)
+        userLevel = UserLevelsModule.UserLevelsModule(self.widgetsLanguage, self.widgetsColor)
         startUserLevel_frame = RebuildsComponents.ClickableFrame(scenario)
         startUserLevel_frame.setGeometry(20, 20, 355, 710)
         startUserLevel_frame.show()
