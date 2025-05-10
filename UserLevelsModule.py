@@ -9,12 +9,23 @@ import time
 import RebuildsComponents, LelelCounting
 
 class UserLevelsModule:
-    def __init__(self):
+    def __init__(self, widgetsLanguage):
         self.numberGestures = 3
         self.Time = 0
         self.gestures = ["", "", ""]
         self.selectPositionGesture = ""
         self.frame_order_gesture = QFrame()
+        self.widgetsColor = "#DAFFDF"
+        self.widgetsLanguage = widgetsLanguage
+        self.widgetsText = {
+            "title_FrameUserLevel": ['Виберіть рівень зі списку:', 'Select a level from the list:'],
+            "title_gesture": ['Жести', 'Gestures'],
+            "title_orderGesture": ['Порядок жестів', 'Order gestures'],
+            "title_FrameNumber": ['Кількість жестів', 'Count of gestures'],
+            "title_FrameTime": ['Ліміт за часом, сек.', 'Limit of time, sec.'],
+            "cleaning_frame": ['Початкова форма', 'The begining form'],
+            "save_level_button": ['Зберегти рівень', 'Save level']
+        }
 
     # Вікно для створення користувацького рівня
     def createUserLevel(self):
@@ -32,7 +43,7 @@ class UserLevelsModule:
 
         title_gesture = QLabel(modal)
         title_gesture.setGeometry(30, 30, 300, 55)
-        title_gesture.setText("Жести")
+        title_gesture.setText(self.widgetsText["title_gesture"][self.widgetsLanguage])
 
         font = QFont()
         font.setBold(True)
@@ -96,7 +107,7 @@ class UserLevelsModule:
 
         title_orderGesture = QLabel(modal)
         title_orderGesture.setGeometry(660, 30, 300, 55)
-        title_orderGesture.setText("Порядок жестів")
+        title_orderGesture.setText(self.widgetsText["title_orderGesture"][self.widgetsLanguage])
 
         title_orderGesture.setFont(font)
 
@@ -137,7 +148,7 @@ class UserLevelsModule:
 
         title_FrameNumber = QLabel(frame_number_gestures)
         title_FrameNumber.setGeometry(20, 10, 300, 55)
-        title_FrameNumber.setText("Кількість жестів")
+        title_FrameNumber.setText(self.widgetsText["title_FrameNumber"][self.widgetsLanguage])
 
         title_FrameNumber.setFont(font)
 
@@ -198,7 +209,7 @@ class UserLevelsModule:
 
         title_FrameTime = QLabel(frame_time_gestures)
         title_FrameTime.setGeometry(20, 10, 300, 55)
-        title_FrameTime.setText("Ліміт за часом, сек.")
+        title_FrameTime.setText(self.widgetsText["title_FrameTime"][self.widgetsLanguage])
 
         title_FrameTime.setFont(font)
 
@@ -259,7 +270,7 @@ class UserLevelsModule:
 
         cleaning_frame = QPushButton(frame_control_buttons)
         cleaning_frame.setGeometry(80, 60, 280, 80)
-        cleaning_frame.setText("Початкова форма")
+        cleaning_frame.setText(self.widgetsText["cleaning_frame"][self.widgetsLanguage])
         cleaning_frame.setObjectName("cleaning_frame")
         cleaning_frame.setStyleSheet("""
                                 QPushButton {
@@ -281,7 +292,7 @@ class UserLevelsModule:
 
         save_level_button = QPushButton(frame_control_buttons)
         save_level_button.setGeometry(460, 60, 280, 80)
-        save_level_button.setText("Зберегти рівень")
+        save_level_button.setText(self.widgetsText["save_level_button"][self.widgetsLanguage])
         save_level_button.setObjectName("save_level_button")
         save_level_button.setStyleSheet("""
                         QPushButton {
@@ -512,7 +523,7 @@ class UserLevelsModule:
         title_FrameUserLevel = QLabel(frame_checkUserLevel)
         title_FrameUserLevel.show()
         title_FrameUserLevel.setGeometry(60, 170, 380, 55)
-        title_FrameUserLevel.setText("Виберіть рівень зі списку:")
+        title_FrameUserLevel.setText(self.widgetsText["title_FrameUserLevel"][self.widgetsLanguage])
 
         font = QFont()
         font.setBold(True)
@@ -604,5 +615,6 @@ class UserLevelsModule:
         print(f'self.readDataFile(filename):\n {numberGestures, time, UserGestures}')
 
         levelCounting = LelelCounting.CreateLevel(numberGestures, time, UserGestures)
+        levelCounting.setLanguage(self.widgetsLanguage)
 
         levelCounting.create_new_level_click("Користувацький рівень", "Користувацький рівень", level_cv_frame)

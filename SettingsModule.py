@@ -7,20 +7,96 @@ from functools import partial
 import random, MainWindow
 
 class SettingsModule:
-    def __init__(self, main):
-        self.language = 0
+    def __init__(self, main, level_counting):
+        self.widgetsLanguage = 0
         self.color = "green"
         self.main_window = main
+        self.level_counting = level_counting
+        self.widgetsText = {
+            "label_language": ['Мова 🌐', 'Language 🌐'],
+            "radio_ukrainian": ['Українська', 'Ukrainian'],
+            "radio_english": ['Англійська', 'English'],
+            "label_color": ['Колірна схема 🎨', 'Color scheme 🎨'],
+            "radio_green": ['Зелений', 'Green'],
+            "radio_purple": ['Фіолетовий', 'Purple'],
+            "radio_orange": ['Помаранчевий', 'Orange'],
+            "radio_pink": ['Рожевий', 'Pink'],
+            "wish_label": ['💕 Твоє побажання на сьогодні: 💕', '💕 Your wish for today: 💕'],
+            "button_reset": ['Скинути налаштування', 'Reset the settings'],
+            "button_exit": ['Вийти з програми', 'Exit the program'],
+            "title_window": ['Статистика', 'Statistics'],
+            "title_facts": ['Цікаві факти', 'Interesting facts'],
+            "title_correctGestures": ['Найбільше правильних жестів', 'The most correct gestures'],
+            "label_mode": ['Улюблений режим:', 'Favorite mode:'],
+            "label_numberSessionsLastMonth": ['За останній місяць:', 'Over the past month:'],
+            "label_AverageTimeSessions": ['Середній час сеансу (хв.):', 'Average session time (minutes):'],
+            "title_outDeveloper": ['Порада від розробника: “Іноді лінь, може підштовхнути вас до здійснення мрій!',
+                                   'A tip from the developer: "Sometimes being lazy can make you realize your dreams!']
+        }
+        self.wishes = {
+            0: [
+                "Бажаю вам сил, спокою та якнайшвидшого одужання, щоб цей день приніс вам трохи світла й тепла.",
+                "Нехай день буде сповнений радості та тепла!",
+                "Бажаю успіху в усіх ваших починаннях!"
+            ],
+            1: [
+                "I wish you strength, peace of mind and a speedy recovery so that this day brings you some light and warmth.",
+                "May the day be full of joy and warmth!",
+                "I wish you success in all your endeavors!"
+            ]
+        }
+        self.select_wish = random.choice([0, 1, 2])
+        # Компоненти, що залежні від налаштувань додатку
+        self.label_language = None
+        self.radio_ukrainian = None
+        self.radio_english = None
+        self.label_color = None
+        self.radio_green = None
+        self.radio_purple = None
+        self.radio_orange = None
+        self.radio_pink = None
+        self.wish_label = None
+        self.wish_text = None
+        self.button_reset = None
+        self.button_exit = None
 
     def set_language(self, lang):
         if lang in [0, 1]:
-            self.language = lang
+            self.widgetsLanguage = lang
             print(f"def set_language(self, lang): {lang}")
             self.main_window.setLanguage(lang)
+            self.level_counting.setLanguage(lang)
+            self.update_ui()
 
     def set_color(self, color):
         if color in ["green", "purple", "orange", "pink"]:
             self.color = color
+
+    def update_ui(self):
+        if self.label_language:
+            self.label_language.setText(self.widgetsText["label_language"][self.widgetsLanguage])
+        if self.radio_ukrainian:
+            self.radio_ukrainian.setText(self.widgetsText["radio_ukrainian"][self.widgetsLanguage])
+        if self.radio_english:
+            self.radio_english.setText(self.widgetsText["radio_english"][self.widgetsLanguage])
+        if self.label_color:
+            self.label_color.setText(self.widgetsText["label_color"][self.widgetsLanguage])
+        if self.radio_green:
+            self.radio_green.setText(self.widgetsText["radio_green"][self.widgetsLanguage])
+        if self.radio_purple:
+            self.radio_purple.setText(self.widgetsText["radio_purple"][self.widgetsLanguage])
+        if self.radio_orange:
+            self.radio_orange.setText(self.widgetsText["radio_orange"][self.widgetsLanguage])
+        if self.radio_pink:
+            self.radio_pink.setText(self.widgetsText["radio_pink"][self.widgetsLanguage])
+        if self.wish_label:
+            self.wish_label.setText(self.widgetsText["wish_label"][self.widgetsLanguage])
+        if self.wish_text:
+            self.wish_text.setText(self.wishes[self.widgetsLanguage][self.select_wish])
+        if self.button_reset:
+            self.button_reset.setText(self.widgetsText["button_reset"][self.widgetsLanguage])
+        if self.button_exit:
+            self.button_exit.setText(self.widgetsText["button_exit"][self.widgetsLanguage])
 
     # Функція-обробник кнопки для виклику меню налаштувань
     def show_settings(self, settings_frame, unvisible_frame, window):
@@ -46,7 +122,7 @@ class SettingsModule:
                 border: 2px solid black;
             }
             QRadioButton {
-                background-color: transparent;
+                background-color: #9EFFA5;
             }
         """
 
@@ -104,16 +180,16 @@ class SettingsModule:
 
         # ------------------------------------------------------------------------------------------------------------------Підпис "Мова застосунку"
 
-        label_language = QLabel(settings_frame)
-        label_language.setGeometry(80, 20, 150, 55)
-        label_language.setText("Мова 🌐")
-        label_language.setStyleSheet("background-color: transparent;")
-        label_language.show()
+        self.label_language = QLabel(settings_frame)
+        self.label_language.setGeometry(80, 20, 180, 55)
+        self.label_language.setText(self.widgetsText["label_language"][self.widgetsLanguage])
+        self.label_language.setStyleSheet("background-color: #9EFFA5;")
+        self.label_language.show()
 
         font = QFont()
         font.setBold(False)
         font.setPointSize(18)
-        label_language.setFont(font)
+        self.label_language.setFont(font)
 
         font2 = QFont()
         font2.setBold(False)
@@ -129,25 +205,25 @@ class SettingsModule:
         # ------------------------------------------------------------------------------------------------------------------Вибір мови застосунку
         language_group = QButtonGroup(settings_frame)
 
-        radio_ukrainian = QRadioButton(settings_frame)
-        radio_ukrainian.setGeometry(40, 100, 180, 30)
-        radio_ukrainian.setText("Українська")
-        radio_ukrainian.setChecked(self.language == 0)
-        radio_ukrainian.toggled.connect(lambda: self.set_language(0))
-        radio_ukrainian.setStyleSheet(radio_button_style)
-        radio_ukrainian.show()
-        radio_ukrainian.setFont(font)
-        language_group.addButton(radio_ukrainian)
+        self.radio_ukrainian = QRadioButton(settings_frame)
+        self.radio_ukrainian.setGeometry(40, 100, 180, 30)
+        self.radio_ukrainian.setText(self.widgetsText["radio_ukrainian"][self.widgetsLanguage])
+        self.radio_ukrainian.setChecked(self.widgetsLanguage == 0)
+        self.radio_ukrainian.toggled.connect(lambda: self.set_language(0))
+        self.radio_ukrainian.setStyleSheet(radio_button_style)
+        self.radio_ukrainian.show()
+        self.radio_ukrainian.setFont(font)
+        language_group.addButton(self.radio_ukrainian)
 
-        radio_english = QRadioButton(settings_frame)
-        radio_english.setGeometry(40, 150, 180, 30)
-        radio_english.setText("Англійська")
-        radio_english.setChecked(self.language == 1)
-        radio_english.toggled.connect(lambda: self.set_language(1))
-        radio_english.setStyleSheet(radio_button_style)
-        radio_english.show()
-        radio_english.setFont(font)
-        language_group.addButton(radio_english)
+        self.radio_english = QRadioButton(settings_frame)
+        self.radio_english.setGeometry(40, 150, 180, 40)
+        self.radio_english.setText(self.widgetsText["radio_english"][self.widgetsLanguage])
+        self.radio_english.setChecked(self.widgetsLanguage == 1)
+        self.radio_english.toggled.connect(lambda: self.set_language(1))
+        self.radio_english.setStyleSheet(radio_button_style)
+        self.radio_english.show()
+        self.radio_english.setFont(font)
+        language_group.addButton(self.radio_english)
 
         # ------------------------------------------------------------------------------------------------------------------Підпис "Колірна схема"
         line2 = QLabel(settings_frame)
@@ -157,12 +233,12 @@ class SettingsModule:
         line2.show()
         line2.setFont(font2)
 
-        label_color = QLabel(settings_frame)
-        label_color.setGeometry(80, 210, 250, 55)
-        label_color.setText("Колірна схема 🎨")
-        label_color.setStyleSheet("background-color: transparent;")
-        label_color.show()
-        label_color.setFont(font)
+        self.label_color = QLabel(settings_frame)
+        self.label_color.setGeometry(80, 210, 250, 55)
+        self.label_color.setText(self.widgetsText["label_color"][self.widgetsLanguage])
+        self.label_color.setStyleSheet("background-color: #9EFFA5;")
+        self.label_color.show()
+        self.label_color.setFont(font)
 
         line3 = QLabel(settings_frame)
         line3.setGeometry(30, 220, 380, 55)
@@ -174,45 +250,45 @@ class SettingsModule:
         # ------------------------------------------------------------------------------------------------------------------Вибір колірної схеми застосунку
         color_group = QButtonGroup(settings_frame)
 
-        radio_green = QRadioButton(settings_frame)
-        radio_green.setGeometry(40, 290, 230, 30)
-        radio_green.setText("Зелена")
-        radio_green.setChecked(self.color == "green")
-        radio_green.toggled.connect(lambda: self.set_color("green"))
-        radio_green.setStyleSheet(radio_button_style)
-        radio_green.show()
-        radio_green.setFont(font)
-        color_group.addButton(radio_green)
+        self.radio_green = QRadioButton(settings_frame)
+        self.radio_green.setGeometry(40, 290, 230, 40)
+        self.radio_green.setText(self.widgetsText["radio_green"][self.widgetsLanguage])
+        self.radio_green.setChecked(self.color == "green")
+        self.radio_green.toggled.connect(lambda: self.set_color("green"))
+        self.radio_green.setStyleSheet(radio_button_style)
+        self.radio_green.show()
+        self.radio_green.setFont(font)
+        color_group.addButton(self.radio_green)
 
-        radio_purple = QRadioButton(settings_frame)
-        radio_purple.setGeometry(40, 340, 230, 30)
-        radio_purple.setText("Фіолетова")
-        radio_purple.setStyleSheet(radio_button_style)
-        radio_purple.setChecked(self.color == "purple")
-        radio_purple.toggled.connect(lambda: self.set_color("purple"))
-        radio_purple.show()
-        radio_purple.setFont(font)
-        color_group.addButton(radio_purple)
+        self.radio_purple = QRadioButton(settings_frame)
+        self.radio_purple.setGeometry(40, 340, 230, 40)
+        self.radio_purple.setText(self.widgetsText["radio_purple"][self.widgetsLanguage])
+        self.radio_purple.setStyleSheet(radio_button_style)
+        self.radio_purple.setChecked(self.color == "purple")
+        self.radio_purple.toggled.connect(lambda: self.set_color("purple"))
+        self.radio_purple.show()
+        self.radio_purple.setFont(font)
+        color_group.addButton(self.radio_purple)
 
-        radio_orange = QRadioButton(settings_frame)
-        radio_orange.setGeometry(40, 390, 230, 30)
-        radio_orange.setText("Помаранчева")
-        radio_orange.setChecked(self.color == "orange")
-        radio_orange.toggled.connect(lambda: self.set_color("orange"))
-        radio_orange.setStyleSheet(radio_button_style)
-        radio_orange.show()
-        radio_orange.setFont(font)
-        color_group.addButton(radio_orange)
+        self.radio_orange = QRadioButton(settings_frame)
+        self.radio_orange.setGeometry(40, 390, 230, 40)
+        self.radio_orange.setText(self.widgetsText["radio_orange"][self.widgetsLanguage])
+        self.radio_orange.setChecked(self.color == "orange")
+        self.radio_orange.toggled.connect(lambda: self.set_color("orange"))
+        self.radio_orange.setStyleSheet(radio_button_style)
+        self.radio_orange.show()
+        self.radio_orange.setFont(font)
+        color_group.addButton(self.radio_orange)
 
-        radio_pink = QRadioButton(settings_frame)
-        radio_pink.setGeometry(40, 440, 230, 30)
-        radio_pink.setText("Рожева")
-        radio_pink.setChecked(self.color == "pink")
-        radio_pink.toggled.connect(lambda: self.set_color("pink"))
-        radio_pink.setStyleSheet(radio_button_style)
-        radio_pink.show()
-        radio_pink.setFont(font)
-        color_group.addButton(radio_pink)
+        self.radio_pink = QRadioButton(settings_frame)
+        self.radio_pink.setGeometry(40, 440, 230, 40)
+        self.radio_pink.setText(self.widgetsText["radio_pink"][self.widgetsLanguage])
+        self.radio_pink.setChecked(self.color == "pink")
+        self.radio_pink.toggled.connect(lambda: self.set_color("pink"))
+        self.radio_pink.setStyleSheet(radio_button_style)
+        self.radio_pink.show()
+        self.radio_pink.setFont(font)
+        color_group.addButton(self.radio_pink)
 
         line4 = QLabel(settings_frame)
         line4.setGeometry(30, 450, 380, 55)
@@ -222,30 +298,28 @@ class SettingsModule:
         line4.setFont(font2)
 
         # ------------------------------------------------------------------------------------------------------------------Побажання
-        wishes = [
-            "Бажаю вам сил, спокою та якнайшвидшого одужання, щоб цей день приніс вам трохи світла й тепла.",
-            "Нехай день буде сповнений радості та тепла!",
-            "Бажаю успіху в усіх ваших починаннях!"
-        ]
-
         font3 = QFont()
         font3.setBold(False)
         font3.setPointSize(13)
 
-        wish_label = QLabel(settings_frame)
-        wish_label.setGeometry(30, 440, 380, 200)
-        wish_label.setText("💕 Твоє побажання на сьогодні: 💕")
-        wish_label.setStyleSheet("background-color: transparent;")
-        wish_label.show()
-        wish_label.setFont(font3)
+        self.wish_label = QLabel(settings_frame)
+        self.wish_label.setGeometry(30, 440, 380, 200)
+        self.wish_label.setText(self.widgetsText["wish_label"][self.widgetsLanguage])
+        self.wish_label.setStyleSheet("background-color: #9EFFA5;")
+        self.wish_label.setFrameShape(QLabel.StyledPanel)
+        self.wish_label.setFrameShadow(QLabel.Plain)
+        self.wish_label.setAlignment(Qt.AlignCenter)
+        self.wish_label.show()
+        self.wish_label.setFont(font3)
 
-        wish_text = QLabel(settings_frame)
-        wish_text.setGeometry(40, 515, 360, 200)
-        wish_text.setText(f"{random.choice(wishes)}")
-        wish_text.setWordWrap(True)
-        wish_text.setAlignment(Qt.AlignCenter)
-        wish_text.show()
-        wish_text.setFont(font3)
+        self.wish_text = QLabel(settings_frame)
+        self.wish_text.setGeometry(40, 565, 360, 110)
+        self.wish_text.setText(self.wishes[self.widgetsLanguage][self.select_wish])
+        self.wish_text.setWordWrap(True)
+        self.wish_text.setStyleSheet("background-color: #9EFFA5;")
+        self.wish_text.setAlignment(Qt.AlignCenter)
+        self.wish_text.show()
+        self.wish_text.setFont(font3)
 
         line5 = QLabel(settings_frame)
         line5.setGeometry(30, 640, 380, 55)
@@ -255,12 +329,12 @@ class SettingsModule:
         line5.setFont(font2)
 
         # ------------------------------------------------------------------------------------------------------------------Кнопки для скидання налаштувань та виходу з додатку
-        button_reset = QPushButton(settings_frame)
-        button_reset.setGeometry(50, 720, 330, 50)
-        button_reset.setText("Скинути налаштування")
-        button_reset.show()
-        button_reset.setFont(font3)
-        button_reset.setStyleSheet("""
+        self.button_reset = QPushButton(settings_frame)
+        self.button_reset.setGeometry(50, 720, 330, 50)
+        self.button_reset.setText(self.widgetsText["button_reset"][self.widgetsLanguage])
+        self.button_reset.show()
+        self.button_reset.setFont(font3)
+        self.button_reset.setStyleSheet("""
                     QPushButton {
                         background-color: #DAFFDF;
                         color: black;
@@ -274,12 +348,12 @@ class SettingsModule:
                     }
                 """)
 
-        button_exit = QPushButton(settings_frame)
-        button_exit.setGeometry(50, 790, 330, 50)
-        button_exit.setText("Вийти з програми")
-        button_exit.show()
-        button_exit.setFont(font3)
-        button_exit.setStyleSheet("""
+        self.button_exit = QPushButton(settings_frame)
+        self.button_exit.setGeometry(50, 790, 330, 50)
+        self.button_exit.setText(self.widgetsText["button_exit"][self.widgetsLanguage])
+        self.button_exit.show()
+        self.button_exit.setFont(font3)
+        self.button_exit.setStyleSheet("""
                     QPushButton {
                         background-color: #DAFFDF;
                         color: black;
@@ -294,11 +368,14 @@ class SettingsModule:
                 """)
 
         # ------------------------------------------------------------------------------------------------------------------Зміна ієрархії елементів
-        label_language.raise_()
-        label_color.raise_()
-        wish_label.raise_()
-        radio_english.raise_()
-        radio_pink.raise_()
+        self.label_language.raise_()
+        self.label_color.raise_()
+        self.radio_english.raise_()
+        line4.raise_()
+        self.radio_pink.raise_()
+        self.wish_text.raise_()
+        # self.wish_label.raise_()
+        line5.raise_()
         button_closeSettings.raise_()
         button_Statistics.raise_()
 
@@ -353,7 +430,7 @@ class SettingsModule:
 
         title_window = QLabel(frame_UserStatistics)
         title_window.setGeometry(488, 23, 335, 55)
-        title_window.setText("Статистика")
+        title_window.setText(self.widgetsText["title_window"][self.widgetsLanguage])
         title_window.show()
 
         font = QFont()
@@ -402,7 +479,7 @@ class SettingsModule:
 
         title_facts = QLabel(frame_UserStatistics)
         title_facts.setGeometry(48, 135, 470, 55)
-        title_facts.setText("Цікаві факти")
+        title_facts.setText(self.widgetsText["title_facts"][self.widgetsLanguage])
         title_facts.show()
 
         font3 = QFont()
@@ -423,7 +500,7 @@ class SettingsModule:
 
         title_correctGestures = QLabel(frame_UserStatistics)
         title_correctGestures.setGeometry(796, 135, 470, 55)
-        title_correctGestures.setText("Найбільше правильних жестів")
+        title_correctGestures.setText(self.widgetsText["title_correctGestures"][self.widgetsLanguage])
         title_correctGestures.show()
 
         title_correctGestures.setFont(font3)
@@ -454,7 +531,7 @@ class SettingsModule:
 
         label_mode = QLabel(frame_facts)
         label_mode.setGeometry(30, 30, 300, 55)
-        label_mode.setText("Улюблений режим:")
+        label_mode.setText(self.widgetsText["label_mode"][self.widgetsLanguage])
         label_mode.show()
 
         font4 = QFont()
@@ -470,9 +547,17 @@ class SettingsModule:
                                             }
                                         """)
 
+        UserModes = {
+            0: ["Жести однією рукою", "Жести двума руками", "Користувацький рівень"],
+            1: ["Gestures with one hand", "Gestures with two hand", "User level"]
+        }
+
+        userMode = (lambda: self.get_userLikeMode())()
+
         label_modeAnswer = QLabel(frame_facts)
         label_modeAnswer.setGeometry(30, 95, 410, 55)
-        label_modeAnswer.setText((lambda: self.get_userLikeMode())())
+
+        label_modeAnswer.setText(UserModes[self.widgetsLanguage][userMode])
         label_modeAnswer.show()
 
         label_modeAnswer.setFont(font3)
@@ -490,7 +575,7 @@ class SettingsModule:
         # --------------------------------------------------
         label_numberSessionsLastMonth = QLabel(frame_facts)
         label_numberSessionsLastMonth.setGeometry(30, 170, 300, 55)
-        label_numberSessionsLastMonth.setText("За останній місяць:")
+        label_numberSessionsLastMonth.setText(self.widgetsText["label_numberSessionsLastMonth"][self.widgetsLanguage])
         label_numberSessionsLastMonth.show()
 
         label_numberSessionsLastMonth.setFont(font4)
@@ -523,8 +608,8 @@ class SettingsModule:
 
         # --------------------------------------------------
         label_AverageTimeSessions = QLabel(frame_facts)
-        label_AverageTimeSessions.setGeometry(30, 305, 300, 55)
-        label_AverageTimeSessions.setText("Середній час сеансу (хв.):")
+        label_AverageTimeSessions.setGeometry(30, 305, 370, 55)
+        label_AverageTimeSessions.setText(self.widgetsText["label_AverageTimeSessions"][self.widgetsLanguage])
         label_AverageTimeSessions.show()
 
         label_AverageTimeSessions.setFont(font4)
@@ -610,7 +695,7 @@ class SettingsModule:
 
         title_outDeveloper = QLabel(frame_UserStatistics)
         title_outDeveloper.setGeometry(160, 850, 980, 35)
-        title_outDeveloper.setText("Порада від розробника: “Іноді лінь, може підштовхнути вас до здійснення мрій!")
+        title_outDeveloper.setText(self.widgetsText["title_outDeveloper"][self.widgetsLanguage])
         title_outDeveloper.show()
 
         font5 = QFont()
@@ -630,9 +715,14 @@ class SettingsModule:
                                 """)
 
     def get_userLikeMode(self):
+        userModes = {
+            "Жести однією рукою": 0,
+            "Жести двума руками": 1,
+            "Користувацький рівень": 2
+        }
         # Додати запит до бд
         result = "Жести однією рукою"
-        return result
+        return userModes[result]
 
     def get_NumberSessionLastMonth(self):
         # Додати запит до бд

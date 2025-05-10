@@ -9,7 +9,7 @@ from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtCore import QTimer, Qt
 
 class CreateLevel:
-    def __init__(self, numberTasks = 0, Time = 0, UserGestures = []):
+    def __init__(self, numberTasks = 0, Time = 0, UserGestures = [], widgetsLanguage = 0):
         self.current_level = 0
         self.numberTasks = numberTasks
         self.current_game_level = ""
@@ -26,6 +26,29 @@ class CreateLevel:
             "Gestures with two hand": "Жести двума руками",
             "User level": "Користувацький рівень"
         }
+        self.widgetsColor = "#DAFFDF"
+        self.widgetsLanguage = widgetsLanguage
+        self.widgetsText = {
+            "button_skip": ['Пропустити', 'Skip'],
+            "msg_box": [['Повідомлення', 'Рівень пройдено!', "Бажаєте продовжити?", "Добре", "Ви зробили ", " помилок під час проходження рівня!",
+                         "Бажаєте пройти рівень заново?", "Так", "Ні"],
+                        ['Message', 'The level is completed!', "Would you like to continue?", "Good", "You have done ", " errors during the level passage!",
+                         "Do you want to go through the level again?", "Yes", "No"]],
+        }
+
+    # Функція для зміни мови додатку
+    def setLanguage(self, Language):
+        self.widgetsLanguage = Language
+        print(f"class CreateLevel(): def setLanguage(self, Language): {Language}")
+
+    # Функція для зміни мови додатку
+    def setDefaultParameters(self):
+        self.current_level = 0
+        self.errorAnswers = 0
+        self.countpoints = 0
+        self.time_remaining = 0
+        self.countdown_timer = QTimer()
+        print(f"setDefaultParameters:")
 
     # Функція-обробник кнопки для створення рівня
     def create_new_level_click(self, current_game_level, card_name, level_cv_frame):
@@ -276,7 +299,7 @@ class CreateLevel:
 
         button_skip = QPushButton(level_cv_frame)
         button_skip.setGeometry(570, 850, 200, 60)
-        button_skip.setText("Пропустити")
+        button_skip.setText(self.widgetsText["button_skip"][self.widgetsLanguage])
         button_skip.show()
 
         font = QFont()
@@ -430,17 +453,18 @@ class CreateLevel:
         # Створюємо повідомлення
         msg_box = QMessageBox()
         msg_box.setIcon(QMessageBox.Information)  # Іконка: Information, Warning, Critical, Question
-        msg_box.setWindowTitle("Повідомлення")
+        msg_box.setWindowTitle(self.widgetsText["msg_box"][self.widgetsLanguage][0])
 
         if self.errorAnswers == 0:
-            msg_box.setText("Рівень пройдено!")
-            msg_box.setInformativeText("Бажаєте продовжити?")
-            btn_ok = msg_box.addButton("Добре", QMessageBox.AcceptRole)
+            msg_box.setText(self.widgetsText["msg_box"][self.widgetsLanguage][1])
+            msg_box.setInformativeText(self.widgetsText["msg_box"][self.widgetsLanguage][2])
+            btn_ok = msg_box.addButton(self.widgetsText["msg_box"][self.widgetsLanguage][3], QMessageBox.AcceptRole)
         else:
-            msg_box.setText(f"Ви зробили {self.errorAnswers} помилок під час проходження рівня!")
-            msg_box.setInformativeText("Бажаєте пройти рівень заново?")
-            btn_yes = msg_box.addButton("Так", QMessageBox.YesRole)
-            btn_no = msg_box.addButton("Ні", QMessageBox.NoRole)
+            temp_str = self.widgetsText["msg_box"][self.widgetsLanguage][4] + str(self.errorAnswers) + self.widgetsText["msg_box"][self.widgetsLanguage][5]
+            msg_box.setText(temp_str)
+            msg_box.setInformativeText(self.widgetsText["msg_box"][self.widgetsLanguage][6])
+            btn_yes = msg_box.addButton(self.widgetsText["msg_box"][self.widgetsLanguage][7], QMessageBox.YesRole)
+            btn_no = msg_box.addButton(self.widgetsText["msg_box"][self.widgetsLanguage][8], QMessageBox.NoRole)
 
         # Відображаємо повідомлення та отримуємо результат
         msg_box.exec_()

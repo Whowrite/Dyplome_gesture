@@ -14,27 +14,43 @@ class MainWindow():
         self.widgetsLanguage = 0
         self.widgetsText = {
             "title_window": ['Потренуємо ваші нейрони', 'ToTrainYourNeurons'],
-            "": ['', ''],
+            "button_start": ['Спробувати', 'Try it'],
+            "msg_box": [ ['Повідомлення', 'Вибачте, але рівень ще в стадії розробки😅'], ['Message', 'Sorry, but the level is still under development😅']],
+            "best_try_level": ['Найкращий результат: ', 'The best result: '],
+            "number_try_level": ['Кількість спроб: ', 'Count of attempts: '],
+            "start_level_button": ['Почати', 'Start'],
+            "textForLevels": ['Рівень ', 'Level ']
         }
-
         # Компоненти, що залежні від налаштувань додатку
         self.title_window = None
         self.level_checking = None
         self.select_Level = None
         self.button_help = None
 
+        self.levelCounting = LelelCounting.CreateLevel()
+        self.MainWindowLink = None
+        self.settingsModule = None
+
+    def setMainWindowLink(self, MainWindowLink):
+        self.MainWindowLink = MainWindowLink
+        self.settingsModule = SettingsModule.SettingsModule(self.MainWindowLink, self.levelCounting)
+        self.settingsModule.set_language(0)
+
+    # Функція для зміни мови додатку
     def setLanguage(self, Language):
         self.widgetsLanguage = Language
         print(f"class MainWindow(): def setLanguage(self, Language): {Language}")
         self.update_ui()
 
+    # Функція для оновлення візуалу компонентів вікна
     def update_ui(self):
         if self.title_window:
             self.title_window.setText(self.widgetsText["title_window"][self.widgetsLanguage])
 
         self.fill_frame_level_checking()
 
-    def mainWindow(self):
+    # Головна функція
+    def mainWindow(self, Main):
         app = QApplication(sys.argv)
         window = QMainWindow()
 
@@ -104,10 +120,9 @@ class MainWindow():
                 }
             """)
 
-        settingsModule = SettingsModule.SettingsModule(main)
-
+        # settingsModule = SettingsModule.SettingsModule(main)
         # Підключення сигналу "clicked" до обробника
-        button_settings.clicked.connect(lambda: settingsModule.show_settings(settings_frame, unvisible_frame, window))
+        button_settings.clicked.connect(lambda: self.settingsModule.show_settings(settings_frame, unvisible_frame, window))
 
         # ------------------------------------------------------------------------------------------------------------------Назва програми
 
@@ -196,6 +211,7 @@ class MainWindow():
 
         # ------------------------------------------------------------------------------------------------------------------Закриття програми
         window.show()
+        self.setMainWindowLink(Main)
         sys.exit(app.exec_())
 
     # Функція, що заповнює фрейм level_checking картками
@@ -237,7 +253,7 @@ class MainWindow():
             # --------------------------------------------------------------------------------------------------------------Кнопка картки для переходу в режим тренування
             button_start = QPushButton(card)
             button_start.setGeometry(30, 393 + 100, 320, 55)
-            button_start.setText("Спробувати")
+            button_start.setText(self.widgetsText["button_start"][self.widgetsLanguage])
             button_start.setStyleSheet("""
                                     QPushButton {
                                         background-color: #DAFFDF; /* Колір кнопки */
@@ -273,12 +289,12 @@ class MainWindow():
     def visible_select_level_click(self, card):
         for widget in self.select_Level.findChildren(QWidget):
             widget.deleteLater()
-        if card.objectName() == "В розробці":
+        if card.objectName() == "В розробці" or card.objectName() == "In development":
             # Створюємо повідомлення
             msg_box = QMessageBox()
             msg_box.setIcon(QMessageBox.Information)
-            msg_box.setWindowTitle("Повідомлення")
-            msg_box.setText("Вибачте, але рівень ще в стадії розробки😅")
+            msg_box.setWindowTitle(self.widgetsText["msg_box"][self.widgetsLanguage][0])
+            msg_box.setText(self.widgetsText["msg_box"][self.widgetsLanguage][1])
             # Відображаємо повідомлення
             msg_box.exec_()
             return False
@@ -382,7 +398,7 @@ class MainWindow():
 
         best_try_level = QLabel(level_status)
         best_try_level.setGeometry(50, 50, 250, 50)
-        best_try_level.setText("Найкращий результат: ")
+        best_try_level.setText(self.widgetsText["best_try_level"][self.widgetsLanguage])
         best_try_level.setStyleSheet("""
                     QLabel {
                         background-color: none; /* Колір фону */
@@ -409,7 +425,7 @@ class MainWindow():
 
         number_try_level = QLabel(level_status)
         number_try_level.setGeometry(50, 130, 250, 50)
-        number_try_level.setText("Кількість спроб: ")
+        number_try_level.setText(self.widgetsText["number_try_level"][self.widgetsLanguage])
         number_try_level.setStyleSheet("""
                         QLabel {
                             background-color: none; /* Колір фону */
@@ -448,7 +464,7 @@ class MainWindow():
 
         start_level_button = QPushButton(level_status)
         start_level_button.setGeometry(430, 80, 170, 80)
-        start_level_button.setText("Почати")
+        start_level_button.setText(self.widgetsText["start_level_button"][self.widgetsLanguage])
         start_level_button.setObjectName("start_level_button")
         start_level_button.setStyleSheet("""
                     QPushButton {
@@ -467,9 +483,8 @@ class MainWindow():
                     }
                 """)
 
-        levelCounting = LelelCounting.CreateLevel()
-
-        start_level_button.clicked.connect(lambda: levelCounting.create_new_level_click(
+        self.levelCounting.setDefaultParameters()
+        start_level_button.clicked.connect(lambda: self.levelCounting.create_new_level_click(
             self.current_game_level, card.objectName(), level_cv_frame))
 
         # ------------------------------------------------------------------------------------------------------------------
@@ -530,7 +545,7 @@ class MainWindow():
 
         # ------------------------------------------------------------------------------------------------------------------Фото картки
         image_label = QLabel(card)
-        if not card.objectName() == "В розробці":
+        if not card.objectName() == "В розробці" or not card.objectName() == "In development":
             image_label.setGeometry(70, 90 + 100, 250, 170)
         else:
             image_label.setGeometry(70, 90 + 150, 250, 170)
@@ -605,7 +620,7 @@ class MainWindow():
 
             textForLevels = QLabel(button_level)
             textForLevels.setGeometry(68, 3, 200, 50)
-            textForLevels.setText("Рівень " + str(num))
+            textForLevels.setText(self.widgetsText["textForLevels"][self.widgetsLanguage] + str(num))
             textForLevels.setStyleSheet("background-color: none; font-size: 15px; font-weight: bold;")
             textForLevels.show()
             num += 1
@@ -759,7 +774,7 @@ class MainWindow():
 
         # ------------------------------------------------------------------------------------------------------------------Фрейм розпочати користувацький рівень
 
-        userLevel = UserLevelsModule.UserLevelsModule()
+        userLevel = UserLevelsModule.UserLevelsModule(self.widgetsLanguage)
         startUserLevel_frame = RebuildsComponents.ClickableFrame(scenario)
         startUserLevel_frame.setGeometry(20, 20, 355, 710)
         startUserLevel_frame.show()
@@ -792,4 +807,4 @@ class MainWindow():
 
 if __name__ == "__main__":
     main = MainWindow()
-    main.mainWindow()
+    main.mainWindow(main)
