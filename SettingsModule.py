@@ -4,14 +4,17 @@ from PyQt5.QtGui import QImage, QPixmap, QFont, QIcon, QTransform
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtCore import QTimer, Qt, QSize
 from functools import partial
-import random, MainWindow
+import random
 
 class SettingsModule:
-    def __init__(self, main, level_counting):
+    def __init__(self, main, level_counting, music):
         self.widgetsLanguage = 0
         self.widgetsColor = ["#9EFFA5", "#DAFFDF"]
         self.main_window = main
         self.level_counting = level_counting
+        self.Music = music
+        self.Music.play_music()  # Початок відтворення
+        self.button_Music_Checked = False
         self.widgetsText = {
             "label_language": ['Мова 🌐', 'Language 🌐'],
             "radio_ukrainian": ['Українська', 'Ukrainian'],
@@ -61,11 +64,12 @@ class SettingsModule:
         self.button_exit = None
         self.button_closeSettings = None
         self.button_Statistics = None
+        self.button_Music = None
 
     def set_language(self, lang):
         if lang in [0, 1]:
             self.widgetsLanguage = lang
-            print(f"def set_language(self, lang): {lang}")
+            # print(f"def set_language(self, lang): {lang}")
             self.main_window.setLanguage(lang)
             self.level_counting.setLanguage(lang)
             self.update_ui()
@@ -127,6 +131,8 @@ class SettingsModule:
             self.button_closeSettings.setStyleSheet(button_style2)
         if self.button_Statistics:
             self.button_Statistics.setStyleSheet(button_style2)
+        if self.button_Music:
+            self.button_Music.setStyleSheet(button_style2)
 
         # Стиль для квадратних QRadioButton
         radio_button_style = f"""
@@ -194,6 +200,29 @@ class SettingsModule:
                 background-color: {self.widgetsColor[0]};
             }}
         """
+
+        self.button_Music = QPushButton(settings_frame)
+        self.button_Music.setGeometry(230, 13, 50, 50)
+        # Завантажуємо іконку
+        icon = QIcon("FingerImages/musicPlay.png")
+        self.button_Music.setIcon(icon)
+        self.button_Music.setIconSize(QSize(40, 40))  # Налаштовуємо розмір іконки (50x50 пікселів)
+        self.button_Music.show()
+
+        self.button_Music.setStyleSheet(f"""
+                                        QPushButton {{
+                                            background-color: {self.widgetsColor[1]}; /* Колір кнопки */
+                                            color: #eb8934; /* Колір тексту */
+                                            border-radius: 25px; /* Закруглення кутів */
+                                        }}
+                                        QPushButton:hover {{
+                                            background-color: #5dade2; /* Колір кнопки при наведенні */
+                                        }}
+                                        QPushButton:pressed {{
+                                            background-color: #1f618d; /* Колір кнопки при натисканні */
+                                        }}
+                                    """)
+        self.button_Music.clicked.connect(partial(self.musicCatcher))
 
         # ------------------------------------------------------------------------------------------------------------------Кнопка для закриття меню налаштувань
 
@@ -448,6 +477,7 @@ class SettingsModule:
         line5.raise_()
         self.button_closeSettings.raise_()
         self.button_Statistics.raise_()
+        self.button_Music.raise_()
 
     # Функція для демонстрації фрейму зі статисткою користувача
     def showUserStatistics(self, window):
@@ -834,3 +864,87 @@ class SettingsModule:
     # Функція для виходу з застосунку
     def exitProgram(self):
         QApplication.quit()
+
+    # Функція для опрацювання музики
+    def musicCatcher(self):
+        if not self.button_Music_Checked:
+            # Завантажуємо іконку
+            icon = QIcon("FingerImages/musicMute.png")
+            self.button_Music.setIcon(icon)
+            self.Music.stop_music()
+            self.button_Music_Checked = True
+        else:
+            # Завантажуємо іконку
+            icon = QIcon("FingerImages/musicPlay.png")
+            self.button_Music.setIcon(icon)
+            self.Music.play_music()
+            self.button_Music_Checked = False
+
+    # Функція для підвантаження налаштувань в застосунок
+    def uploadSettings(self):
+        filename = "settings.txt"
+        languages = {
+            "ukrainian": 0,
+            "english": 1
+        }
+        default_colors = ["#9EFFA5", "#DAFFDF"]
+        color = default_colors.copy()  # Ініціалізуємо значення за замовчуванням
+        language = "ukrainian"  # Значення за замовчуванням для мови
+
+        try:
+            with open(filename, 'r', encoding='utf-8') as file:
+                for line in file:
+                    line = line.strip()
+                    if not line:  # Пропускаємо порожні рядки
+                        continue
+                    if line.startswith("Language:"):
+                        language = line.split(":", 1)[1].strip().lower()
+                    elif line.startswith("Color:"):
+                        # Отримуємо частину після "Color:" і прибираємо пробіли
+                        color_str = line.split(":", 1)[1].strip()
+                        # Розбиваємо на кольори, прибираємо лапки та '#'
+                        colors = [c.strip().strip('"').lstrip('#') for c in color_str.split(",")]
+                        # Перевіряємо, чи отримали два кольори
+                        if len(colors) == 2 and all(c for c in colors):
+                            color = colors
+                        else:
+                            print("Некоректний формат кольорів. Використовуються значення за замовчуванням.")
+                            color = default_colors
+
+            # Встановлюємо значення
+            self.set_color(color)
+            self.set_language(languages.get(language, 0))  # 0 як значення за замовчуванням
+
+        except FileNotFoundError:
+            print(f"Файл {filename} не знайдено. Використовуються налаштування за замовчуванням.")
+            self.set_color(["9EFFA5", "DAFFDF"])
+            self.set_language(languages["ukrainian"])
+        except Exception as e:
+            print(f"Помилка при читанні файлу налаштувань: {e}")
+            self.set_color(["9EFFA5", "DAFFDF"])
+            self.set_language(languages["ukrainian"])
+
+    # Функція для збереження налаштувань застосунку
+    def saveSettings(self):
+        filename = "settings.txt"
+        # Словник для зворотного перетворення числового ідентифікатора мови у назву
+        languages = {
+            0: "ukrainian",
+            1: "english"
+        }
+
+        try:
+            # Отримуємо поточні налаштування з об'єкта
+            current_language = languages[(self.widgetsLanguage)]
+            current_colors = self.widgetsColor
+
+            # Формуємо вміст файлу
+            settings_content = f"Language: {current_language}\n"
+            settings_content += f"Color: \"{current_colors[0]}\", \"{current_colors[1]}\""
+
+            # Записуємо у файл
+            with open(filename, 'w', encoding='utf-8') as file:
+                file.write(settings_content)
+
+        except Exception as e:
+            print(f"Помилка при збереженні налаштувань: {e}")

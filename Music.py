@@ -1,42 +1,44 @@
-import tkinter as tk
-from tkinter import messagebox
 import pygame
-import threading
+import os
 
-# Ініціалізація pygame для роботи з музикою
-pygame.mixer.init()
+class Music:
+    def __init__(self):
+        # Ініціалізація pygame для роботи з музикою
+        pygame.mixer.init()
 
-def play_music():
-    """Функція для програвання музики у фоні"""
-    pygame.mixer.music.load("music1.mp3")  # Вкажіть шлях до вашого файлу
-    pygame.mixer.music.play(-1)  # -1 означає повторювати трек нескінченно
+        # Шлях до єдиного треку
+        self.track = "Musics/music1.mp3"
+        self.is_playing = False  # Статус відтворення
+        self.volume = 0.3  # Початкова гучність (0.0 до 1.0)
 
-def stop_music():
-    """Зупинити музику"""
-    pygame.mixer.music.stop()
+        # Встановлюємо початкову гучність
+        pygame.mixer.music.set_volume(self.volume)
 
-def on_close():
-    """Закриття програми з очищенням ресурсів"""
-    stop_music()
-    root.destroy()
+    def play_music(self):
+        """Починає відтворення треку"""
+        try:
+            if not self.is_playing:
+                # print(f"Спроба відтворення треку: {self.track}")
+                # Перевіряємо, чи файл існує
+                if not os.path.exists(self.track):
+                    print(f"Файл {self.track} не знайдено")
+                    return
+                self.is_playing = True
+                # Очищаємо стан pygame.mixer
+                pygame.mixer.music.stop()
+                pygame.mixer.music.unload()
+                # Завантажуємо та відтворюємо трек
+                pygame.mixer.music.load(self.track)
+                pygame.mixer.music.set_volume(self.volume)
+                pygame.mixer.music.play()
+                # print(f"Трек {self.track} відтворюється")
+        except Exception as e:
+            print(f"Помилка відтворення треку {self.track}: {e}")
+            self.is_playing = False
 
-# Створення головного вікна Tkinter
-root = tk.Tk()
-root.title("Додаток з музикою")
-root.geometry("400x300")
-
-# Додавання кнопок
-play_button = tk.Button(root, text="Запустити музику", command=lambda: threading.Thread(target=play_music).start())
-play_button.pack(pady=10)
-
-stop_button = tk.Button(root, text="Зупинити музику", command=stop_music)
-stop_button.pack(pady=10)
-
-exit_button = tk.Button(root, text="Вийти", command=on_close)
-exit_button.pack(pady=10)
-
-# Обробка закриття вікна
-root.protocol("WM_DELETE_WINDOW", on_close)
-
-# Запуск програми
-root.mainloop()
+    def stop_music(self):
+        """Зупиняє музику"""
+        # print("Зупинка музики")
+        pygame.mixer.music.stop()
+        pygame.mixer.music.unload()
+        self.is_playing = False

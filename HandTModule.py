@@ -192,13 +192,13 @@ class handDetector():
                     matches = False
                     break
             if matches:
-                print("Жест повністю співпадає!")
+                # print("Жест повністю співпадає!")
                 return True
             else:
-                print("Жест не співпадає.")
+                # print("Жест не співпадає.")
                 return False
         else:
-            print("Розмір масивів не співпадає.")
+            # print("Розмір масивів не співпадає.")
             return False
 
 def main():

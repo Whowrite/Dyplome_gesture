@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QApplication, QLabel, QWidget, QMainWindow, QPushBut
 from PyQt5.QtGui import QImage, QPixmap, QFont, QIcon, QTransform
 from PyQt5.QtCore import QTimer, Qt, QSize
 from functools import partial
-import LelelCounting, SettingsModule, RebuildsComponents, UserLevelsModule
+import LelelCounting, SettingsModule, RebuildsComponents, UserLevelsModule, Music
 
 class MainWindow():
     def __init__(self):
@@ -34,23 +34,25 @@ class MainWindow():
         self.levelCounting = LelelCounting.CreateLevel()
         self.MainWindowLink = None
         self.settingsModule = None
+        self.Music = Music.Music()
 
     # Функція для ініціалізації зв'язку з модулем налаштувань
     def setMainWindowLink(self, MainWindowLink):
         self.MainWindowLink = MainWindowLink
-        self.settingsModule = SettingsModule.SettingsModule(self.MainWindowLink, self.levelCounting)
-        self.settingsModule.set_language(0)
+        self.settingsModule = SettingsModule.SettingsModule(self.MainWindowLink, self.levelCounting, self.Music)
+        self.settingsModule.uploadSettings()
+        self.addUserVisits()
 
     # Функція для зміни мови додатку
     def setLanguage(self, Language):
         self.widgetsLanguage = Language
-        print(f"class MainWindow(): def setLanguage(self, Language): {Language}")
+        # print(f"class MainWindow(): def setLanguage(self, Language): {Language}")
         self.update_ui()
 
     # Функція для зміни мови додатку
     def setColor(self, color):
         self.widgetsColor = color
-        print(f"class MainWindow(): def setColor(self, color): {color}")
+        # print(f"class MainWindow(): def setColor(self, color): {color}")
         self.update_ui()
 
     # Функція для оновлення візуалу компонентів вікна
@@ -88,25 +90,13 @@ class MainWindow():
         self.button_settings.setStyleSheet(button_style)
         self.button_help.setStyleSheet(button_style)
         self.select_Level.setStyleSheet(frame_style)
-        self.window.setStyleSheet(f"""
-                    QMainWindow {{
-                        background-color: {self.widgetsColor[1]}; /* Колір вікна */
-                    }}
-                """)
+        self.window.set_color(self.widgetsColor)
+        self.window.set_language(self.widgetsLanguage)
 
     # Головна функція
     def mainWindow(self, Main):
-        app = QApplication(sys.argv)
-        self.window = QMainWindow()
-
-        self.window.setWindowTitle("ToTrainYourNeurons")
-        self.window.setGeometry(250, 100, 1315, 917)
-
-        self.window.setStyleSheet(f"""
-                    QMainWindow {{
-                        background-color: {self.widgetsColor[1]}; /* Колір вікна */
-                    }}
-                """)
+        # Головне вікно застосунку
+        self.window = RebuildsComponents.MainWindow(self.Music)
 
         # ------------------------------------------------------------------------------------------------------------------Фрейм Налаштувань
 
@@ -255,7 +245,6 @@ class MainWindow():
         # ------------------------------------------------------------------------------------------------------------------Закриття програми
         self.window.show()
         self.setMainWindowLink(Main)
-        sys.exit(app.exec_())
 
     # Функція, що заповнює фрейм level_checking картками
     def fill_frame_level_checking(self):
@@ -848,6 +837,15 @@ class MainWindow():
 
         level_cv_frame.raise_()
 
+    # Функція для збереження відвідування користувача застосунку
+    def addUserVisits(self):
+        print("Доброго дня користувач")
+        # Запит до бд
+
+
+
 if __name__ == "__main__":
+    app = QApplication(sys.argv)
     main = MainWindow()
     main.mainWindow(main)
+    sys.exit(app.exec_())

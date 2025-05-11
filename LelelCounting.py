@@ -20,12 +20,14 @@ class CreateLevel:
         self.errorAnswers = 0
         self.time_remaining = Time
         self.countdown_timer = QTimer()
+        self.infoAboutGestures = {}
         self.countpoints = 0
         self.cards_names = {
             "Gestures with one hand": "Жести однією рукою",
             "Gestures with two hand": "Жести двума руками",
             "User level": "Користувацький рівень"
         }
+        self.card_name = ""
         self.widgetsColor = ["#9EFFA5", "#DAFFDF"]
         self.widgetsLanguage = widgetsLanguage
         self.widgetsText = {
@@ -39,12 +41,12 @@ class CreateLevel:
     # Функція для зміни мови додатку
     def setLanguage(self, Language):
         self.widgetsLanguage = Language
-        print(f"class CreateLevel(): def setLanguage(self, Language): {Language}")
+        # print(f"class CreateLevel(): def setLanguage(self, Language): {Language}")
 
     # Функція для зміни мови додатку
     def setColor(self, color):
         self.widgetsColor = color
-        print(f"class CreateLevel(): def setColor(self, color): {color}")
+        # print(f"class CreateLevel(): def setColor(self, color): {color}")
 
     # Функція для зміни мови додатку
     def setDefaultParameters(self):
@@ -53,18 +55,21 @@ class CreateLevel:
         self.countpoints = 0
         self.time_remaining = 0
         self.countdown_timer = QTimer()
-        print(f"setDefaultParameters:")
+        self.infoAboutGestures = {}
+        # print(f"setDefaultParameters:")
 
     # Функція-обробник кнопки для створення рівня
     def create_new_level_click(self, current_game_level, card_name, level_cv_frame):
         if card_name in self.cards_names:
-            card_name = self.cards_names[card_name]
+            self.card_name = self.cards_names[card_name]
+        else:
+            self.card_name = card_name
         print("Good luck: " + current_game_level)
         self.current_game_level = current_game_level
-        if not card_name == "Користувацький рівень":
+        if not self.card_name == "Користувацький рівень":
             self.numberTasks = self.getNumTasks()
-            print("Good luck: " + card_name)
-            self.levelGestures = Cl.getlevelarray(card_name, current_game_level)
+            print("Good luck: " + self.card_name)
+            self.levelGestures = Cl.getlevelarray(self.card_name, self.current_game_level)
         level_cv_frame.show()
 
         # ------------------------------------------------------------------------------------------------------------------Мітки для відображення рук
@@ -204,17 +209,20 @@ class CreateLevel:
                                                                     }}
                                                                 """)
                             founded_label.setText("✓")
+                            self.addAnswerCorrectGesture(1)
                             self.current_level += 1
                             if self.current_level == self.numberTasks:
                                 self.countdown_timer.stop()  # Зупиняємо таймер
                                 def end_level():
                                     if self.show_message_box():
                                         # Завершення рівня після показу повідомлення
+                                        self.addStatisticsGesture()
                                         self.stop_camera(timer, cap, camera_label)
                                         self.closingCVframe(level_cv_frame, frameForLevelCounters)
                                     else:
                                         self.current_level = 0
                                         self.errorAnswers = 0
+                                        self.infoAboutGestures = {}
                                         self.uncheckButtons(frameForLevelCounters)
                                         self.setTime_remaining(1)
                                         self.countdown_timer.start()
@@ -424,6 +432,7 @@ class CreateLevel:
                                         }}
                                     """)
         founded_label.setText("X")
+        self.addAnswerCorrectGesture(0)
         self.current_level += 1
         self.errorAnswers += 1
         if self.current_level == self.numberTasks:
@@ -431,11 +440,13 @@ class CreateLevel:
             def end_level():
                 if self.show_message_box():
                     # Завершення рівня після показу повідомлення
+                    self.addStatisticsGesture()
                     self.stop_camera(timer, cap, camera_label)
                     self.closingCVframe(level_cv_frame, frameForLevelCounters)
                 else:
                     self.current_level = 0
                     self.errorAnswers = 0
+                    self.infoAboutGestures = {}
                     self.uncheckButtons(frameForLevelCounters)
                     self.setTime_remaining(1)
                     self.countdown_timer.start()
@@ -488,3 +499,22 @@ class CreateLevel:
             elif clicked_button == btn_no:
                 print("Натиснуто Ні")
                 return True
+
+    # Функція для збереження статистики про використані жести
+    def addAnswerCorrectGesture(self, answerResult):
+        """
+        Формат: { "назва жесту": [правильна відповідь, кількість використань] }
+        """
+        gesture_name = self.levelGestures[self.current_level][3]  # Отримуємо назву жесту
+        if gesture_name in self.infoAboutGestures:
+            # Якщо жест уже є, оновлюємо статистику
+            self.infoAboutGestures[gesture_name][0] += answerResult  # Оновлюємо правильні відповіді
+            self.infoAboutGestures[gesture_name][1] += 1  # Збільшуємо кількість використань
+        else:
+            # Якщо жест новий, додаємо новий запис
+            self.infoAboutGestures[gesture_name] = [answerResult, 1]
+
+    # Функція для оновлення статистики про використані жести в бд
+    def addStatisticsGesture(self):
+        print(f"Назва режиму гри: {self.card_name}")
+        print(f"Статистика пройденого рівня: \n{self.infoAboutGestures}")
