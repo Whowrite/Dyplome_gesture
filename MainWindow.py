@@ -40,6 +40,7 @@ class MainWindow():
     def setMainWindowLink(self, MainWindowLink):
         self.MainWindowLink = MainWindowLink
         self.settingsModule = SettingsModule.SettingsModule(self.MainWindowLink, self.levelCounting, self.Music)
+        # self.settingsModule = SettingsModule.SettingsModule(self.MainWindowLink, self.levelCounting)
         self.settingsModule.uploadSettings()
         self.addUserVisits()
 
@@ -96,6 +97,7 @@ class MainWindow():
     # Головна функція
     def mainWindow(self, Main):
         # Головне вікно застосунку
+        # self.window = RebuildsComponents.MainWindow(self.Music)
         self.window = RebuildsComponents.MainWindow(self.Music)
 
         # ------------------------------------------------------------------------------------------------------------------Фрейм Налаштувань

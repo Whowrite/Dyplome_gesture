@@ -203,9 +203,14 @@ class SettingsModule:
 
         self.button_Music = QPushButton(settings_frame)
         self.button_Music.setGeometry(230, 13, 50, 50)
-        # Завантажуємо іконку
-        icon = QIcon("FingerImages/musicPlay.png")
-        self.button_Music.setIcon(icon)
+        if self.button_Music_Checked:
+            # Завантажуємо іконку
+            icon = QIcon("FingerImages/musicMute.png")
+            self.button_Music.setIcon(icon)
+        else:
+            # Завантажуємо іконку
+            icon = QIcon("FingerImages/musicPlay.png")
+            self.button_Music.setIcon(icon)
         self.button_Music.setIconSize(QSize(40, 40))  # Налаштовуємо розмір іконки (50x50 пікселів)
         self.button_Music.show()
 
@@ -863,6 +868,9 @@ class SettingsModule:
 
     # Функція для виходу з застосунку
     def exitProgram(self):
+        self.saveSettings()
+        self.main_window.window.saveSessionTime()
+        self.Music.stop_music()
         QApplication.quit()
 
     # Функція для опрацювання музики

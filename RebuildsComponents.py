@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import QFrame, QDialog, QLabel, QMainWindow
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import Qt, QTimer
+import sys
 
 class ClickableFrame(QFrame):
     clicked = pyqtSignal()  # створюємо власний сигнал
@@ -62,9 +63,10 @@ class MainWindow(QMainWindow):
         """
         Перевизначаємо подію закриття вікна, щоб зберегти налаштування перед виходом.
         """
-        self.music.stop_music()
+        # self.music.stop_music()
         self.saveSettings()
         self.saveSessionTime()
+        self.music.stop_music()
         event.accept()  # Дозволяємо вікну закритися
 
     def saveSettings(self):
