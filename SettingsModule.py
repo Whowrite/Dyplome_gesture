@@ -34,7 +34,8 @@ class SettingsModule:
             "label_numberSessionsLastMonth": ['За останній місяць:', 'Over the past month:'],
             "label_AverageTimeSessions": ['Середній час сеансу (хв.):', 'Average session time (minutes):'],
             "title_outDeveloper": ['Порада від розробника: “Іноді лінь, може підштовхнути вас до здійснення мрій!',
-                                   'A tip from the developer: "Sometimes being lazy can make you realize your dreams!']
+                                   'A tip from the developer: "Sometimes being lazy can make you realize your dreams!'],
+            "button_help_statistics": ["Допоміжний текст 4!!!", "Help text 4!!!"]
         }
         self.wishes = {
             0: [
@@ -484,7 +485,7 @@ class SettingsModule:
         self.button_Statistics.raise_()
         self.button_Music.raise_()
 
-    # Функція для демонстрації фрейму зі статисткою користувача
+    # Функція-обробник для демонстрації фрейму зі статисткою користувача
     def showUserStatistics(self, window):
         # ------------------------------------------------------------------------------------------------------------------Фрейм відображення статистики
 
@@ -580,6 +581,11 @@ class SettingsModule:
                             background-color: #1f618d; /* Колір кнопки при натисканні */
                         }}
                     """)
+
+        # Підключення сигналу "clicked" до обробника
+        button_help.clicked.connect(
+            partial(self.main_window.showHelpWindow, self.widgetsText["button_help_statistics"][self.widgetsLanguage],
+                    "FingerImages/Записування з екрана 2025-04-16 112136.gif"))
 
         # ------------------------------------------------------------------------------------------------------------------Заголовки
 
@@ -849,7 +855,7 @@ class SettingsModule:
         result = [["FingerImages/both_gesture_heart.jpg", 7, 10], ["FingerImages/gesture_oke.jpg", 5, 10], ["FingerImages/both_gesture_uwu.jpg", 2, 10]]
         return result
 
-    # Функція для того, щоб сховати фрейм статистки користувача
+    # Функція-обробник для того, щоб сховати фрейм статистки користувача
     def hide_frame_UserStatistics(self, frame_UserStatistics):
         print("close: frame_UserStatistics")
         frame_UserStatistics.hide()
@@ -859,21 +865,21 @@ class SettingsModule:
         settings_frame.hide()
         unvisible_frame.hide()
 
-    # Функція для встановлення початкових значень налаштувань
+    # Функція-обробник для встановлення початкових значень налаштувань
     def set_defaultSettings(self):
         self.set_color(["9EFFA5", "DAFFDF"])
         self.radio_green.setChecked(True)
         self.set_language(0)
         self.radio_ukrainian.setChecked(True)
 
-    # Функція для виходу з застосунку
+    # Функція-обробник для виходу зі застосунку
     def exitProgram(self):
         self.saveSettings()
         self.main_window.window.saveSessionTime()
         self.Music.stop_music()
         QApplication.quit()
 
-    # Функція для опрацювання музики
+    # Функція-обробник для опрацювання музики
     def musicCatcher(self):
         if not self.button_Music_Checked:
             # Завантажуємо іконку

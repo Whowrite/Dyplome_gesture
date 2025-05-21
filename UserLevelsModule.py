@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QHBoxLayout, QLabel, QWidget, QPushButton, QFrame, QVBoxLayout, \
     QStyle, QMessageBox, QRadioButton, QButtonGroup, QDialog, QScrollArea, QComboBox
 from PyQt5.QtGui import QImage, QPixmap, QFont
-from PyQt5.QtGui import QImage, QPixmap
+from PyQt5.QtGui import QImage, QPixmap, QMovie
 from PyQt5.QtCore import QTimer, Qt
 from functools import partial
 import os
@@ -23,11 +23,12 @@ class UserLevelsModule:
             "title_orderGesture": ['Порядок жестів', 'Order gestures'],
             "title_FrameNumber": ['Кількість жестів', 'Count of gestures'],
             "title_FrameTime": ['Ліміт за часом, сек.', 'Limit of time, sec.'],
-            "cleaning_frame": ['Початкова форма', 'The begining form'],
-            "save_level_button": ['Зберегти рівень', 'Save level']
+            "cleaning_button": ['Початкова форма', 'The begining form'],
+            "save_level_button": ['Зберегти рівень', 'Save level'],
+            "button_help": ["Допоміжний текст 5!!!", "Help text 5!!!"]
         }
 
-    # Вікно для створення користувацького рівня
+    # Функція-обробник для створення користувацького рівня
     def createUserLevel(self):
         print("UserLevelsModule: def createUserLevel()")
         # Створюємо та показуємо модальне вікно
@@ -60,6 +61,36 @@ class UserLevelsModule:
                         border-radius: 10px; /* Закруглення кутів */
                     }}
                 """)
+
+        # ------------------------------------------------------------------------------------------------------------------Кнопка довідки
+
+        button_help = QPushButton(modal)
+        button_help.setGeometry(1206, 18, 60, 60)
+        button_help.setText("?")
+
+        font2 = QFont()
+        font2.setBold(True)
+        font2.setPointSize(18)
+        button_help.setFont(font2)
+
+        button_help.setStyleSheet(f"""
+                        QPushButton {{
+                            background-color: {self.widgetsColor[0]}; /* Колір кнопки */
+                            color: #eb8934; /* Колір тексту */
+                            border-radius: 30px; /* Закруглення кутів */
+                        }}
+                        QPushButton:hover {{
+                            background-color: #5dade2; /* Колір кнопки при наведенні */
+                        }}
+                        QPushButton:pressed {{
+                            background-color: #1f618d; /* Колір кнопки при натисканні */
+                        }}
+                    """)
+
+        # Підключення сигналу "clicked" до обробника
+        button_help.clicked.connect(
+            partial(self.showHelpWindow, self.widgetsText["button_help"][self.widgetsLanguage],
+                    "FingerImages/Записування з екрана 2025-04-16 112136.gif"))
 
         # ------------------------------------------------------------------------------------------------------------------Меню вибору жестів
 
@@ -268,11 +299,11 @@ class UserLevelsModule:
                                                         }}
                                                     """)
 
-        cleaning_frame = QPushButton(frame_control_buttons)
-        cleaning_frame.setGeometry(80, 60, 280, 80)
-        cleaning_frame.setText(self.widgetsText["cleaning_frame"][self.widgetsLanguage])
-        cleaning_frame.setObjectName("cleaning_frame")
-        cleaning_frame.setStyleSheet(f"""
+        cleaning_button = QPushButton(frame_control_buttons)
+        cleaning_button.setGeometry(80, 60, 280, 80)
+        cleaning_button.setText(self.widgetsText["cleaning_button"][self.widgetsLanguage])
+        cleaning_button.setObjectName("cleaning_button")
+        cleaning_button.setStyleSheet(f"""
                                 QPushButton {{
                                     background-color: {self.widgetsColor[1]}; /* Фон кнопки */
                                     border-radius: 10px; /* Закруглені кути */
@@ -288,7 +319,7 @@ class UserLevelsModule:
                                     border-color: #1f618d; /* Колір кнопки при натисканні */
                                 }}
                             """)
-        cleaning_frame.clicked.connect(partial(self.clear_frame_click, modal))
+        cleaning_button.clicked.connect(partial(self.clear_frame_click, modal))
 
         save_level_button = QPushButton(frame_control_buttons)
         save_level_button.setGeometry(460, 60, 280, 80)
@@ -313,6 +344,46 @@ class UserLevelsModule:
         save_level_button.clicked.connect(partial(self.save_UserLevel_click, modal))
 
         modal.exec_()  # Запускаємо модальне вікно (блокує основне)
+
+    # Функція-обробник кнопки для демонстрації вікна довідки
+    def showHelpWindow(self, helpText, helpGif):
+            print("showHelpWindow")
+            helpWindow = RebuildsComponents.ModalWindow(800, 200, 700, 600)
+            helpWindow.setWindowTitle("Help window")
+            helpWindow.setStyleSheet(f"""
+                                   QDialog {{
+                                       background-color: {self.widgetsColor[1]}; /* Колір вікна */
+                                   }}
+                               """)
+
+            label_helpText = QLabel(helpWindow)
+            label_helpText.setGeometry(20, 50, 200, 500)
+            label_helpText.setText(helpText)
+
+            font = QFont()
+            font.setBold(True)
+            font.setPointSize(14)
+            label_helpText.setFont(font)
+            label_helpText.setWordWrap(True)
+
+            label_helpText.setStyleSheet(f"""
+                            QLabel {{
+                                background-color: {self.widgetsColor[0]}; /* Колір фону */
+                                color: black; /* Колір тексту */
+                                border-radius: 10px; /* Закруглення кутів */
+                            }}
+                        """)
+
+            labelGif = QLabel(helpWindow)
+            labelGif.setGeometry(250, 50, 400, 500)
+
+            movie = QMovie(helpGif)
+            labelGif.setMovie(movie)
+            movie.start()
+
+            labelGif.show()
+
+            helpWindow.exec_()  # Запускаємо модальне вікно (блокує основне)
 
     # Функція для наповнення фрейму "порядок жестів"
     def add_CardsOfGestures(self, number):
@@ -378,7 +449,7 @@ class UserLevelsModule:
     def clear_frame_click(self, modal):
         print(f"Очищення форми:")
         modal.close()
-        self.__init__()
+        self.__init__(self.widgetsLanguage, self.widgetsColor)
         self.createUserLevel()
 
     # Функція-обробник для збереження користувацького рівня
@@ -503,12 +574,12 @@ class UserLevelsModule:
 
         return numberGestures, time, gestures
 
-    # Функція вибору користувацького рівня з директорії UserLevels/...
+    # Функція-обробник вибору користувацького рівня з директорії UserLevels/...
     def openUserLevelPanel(self, level_cv_frame):
         for widget in level_cv_frame.findChildren(QWidget):
             widget.deleteLater()
         level_cv_frame.show()
-        # ------------------------------------------------------------------------------------------------------------------Фрейм для визначення кількості жестів
+        # ------------------------------------------------------------------------------------------------------------------Фрейм для визначення рівня користувача
 
         frame_checkUserLevel = QFrame(level_cv_frame)
         frame_checkUserLevel.show()
@@ -605,7 +676,7 @@ class UserLevelsModule:
 
         # Вікно для запуску користувацького рівня
 
-    # Функція зчитування даних з вибраного файлу та запуску рівня
+    # Функція-обробник зчитування даних з вибраного файлу та запуску рівня
     def startUserLevel(self, level_cv_frame, filename):
         print("UserLevelsModule: def startUserLevel()")
         print(f'filename: {filename}')

@@ -2,10 +2,12 @@ import sys
 import mediapipe as mp
 from PyQt5.QtWidgets import QApplication, QLabel, QWidget, QMainWindow, QPushButton, QScrollArea, QFrame, QHBoxLayout, \
     QGraphicsOpacityEffect, QMessageBox
-from PyQt5.QtGui import QImage, QPixmap, QFont, QIcon, QTransform
+from PyQt5.QtGui import QImage, QPixmap, QFont, QIcon, QTransform, QMovie
 from PyQt5.QtCore import QTimer, Qt, QSize
 from functools import partial
 import LelelCounting, SettingsModule, RebuildsComponents, UserLevelsModule, Music
+import requests
+from packaging import version
 
 class MainWindow():
     def __init__(self):
@@ -19,7 +21,10 @@ class MainWindow():
             "best_try_level": ['Найкращий результат: ', 'The best result: '],
             "number_try_level": ['Кількість спроб: ', 'Count of attempts: '],
             "start_level_button": ['Почати', 'Start'],
-            "textForLevels": ['Рівень ', 'Level ']
+            "textForLevels": ['Рівень ', 'Level '],
+            "button_help": ["Допоміжний текст!!!", "Help text!!!"],
+            "button_help_select_level": ["Допоміжний текст 2!!!", "Help text 2!!!"],
+            "button_help_ForUserLevels": ["Допоміжний текст 3!!!", "Help text 3!!!"]
         }
         # Компоненти, що залежні від налаштувань додатку
         self.window = None
@@ -38,6 +43,7 @@ class MainWindow():
 
     # Функція для ініціалізації зв'язку з модулем налаштувань
     def setMainWindowLink(self, MainWindowLink):
+        self.check_for_updates()
         self.MainWindowLink = MainWindowLink
         self.settingsModule = SettingsModule.SettingsModule(self.MainWindowLink, self.levelCounting, self.Music)
         # self.settingsModule = SettingsModule.SettingsModule(self.MainWindowLink, self.levelCounting)
@@ -206,6 +212,9 @@ class MainWindow():
                 }}
             """)
 
+        # Підключення сигналу "clicked" до обробника
+        self.button_help.clicked.connect(partial(self.showHelpWindow, self.widgetsText["button_help"][self.widgetsLanguage], "FingerImages/Записування з екрана 2025-04-16 112136.gif"))
+
         # ------------------------------------------------------------------------------------------------------------------Фрейм вибірки рівня
 
         self.select_Level = QFrame(self.window)
@@ -247,6 +256,46 @@ class MainWindow():
         # ------------------------------------------------------------------------------------------------------------------Закриття програми
         self.window.show()
         self.setMainWindowLink(Main)
+
+    # Функція-обробник кнопки для демонстрації вікна довідки
+    def showHelpWindow(self, helpText, helpGif):
+        print("showHelpWindow")
+        helpWindow = RebuildsComponents.ModalWindow(800, 200, 700, 600)
+        helpWindow.setWindowTitle("Help window")
+        helpWindow.setStyleSheet(f"""
+                               QDialog {{
+                                   background-color: {self.widgetsColor[1]}; /* Колір вікна */
+                               }}
+                           """)
+
+        label_helpText = QLabel(helpWindow)
+        label_helpText.setGeometry(20, 50, 200, 500)
+        label_helpText.setText(helpText)
+
+        font = QFont()
+        font.setBold(True)
+        font.setPointSize(14)
+        label_helpText.setFont(font)
+        label_helpText.setWordWrap(True)
+
+        label_helpText.setStyleSheet(f"""
+                        QLabel {{
+                            background-color: {self.widgetsColor[0]}; /* Колір фону */
+                            color: black; /* Колір тексту */
+                            border-radius: 10px; /* Закруглення кутів */
+                        }}
+                    """)
+
+        labelGif = QLabel(helpWindow)
+        labelGif.setGeometry(250, 50, 400, 500)
+
+        movie = QMovie(helpGif)
+        labelGif.setMovie(movie)
+        movie.start()
+
+        labelGif.show()
+
+        helpWindow.exec_()  # Запускаємо модальне вікно (блокує основне)
 
     # Функція, що заповнює фрейм level_checking картками
     def fill_frame_level_checking(self):
@@ -354,6 +403,15 @@ class MainWindow():
                             background-color: #1f618d; /* Колір кнопки при натисканні */
                         }}
                     """)
+        try:
+            self.button_help.clicked.disconnect()
+        except Exception:
+            pass  # Якщо немає підключених обробників, ігноруємо помилку
+
+        # Підключення сигналу "clicked" до обробника
+        self.button_help.clicked.connect(
+            partial(self.showHelpWindow, self.widgetsText["button_help_select_level"][self.widgetsLanguage],
+                    "FingerImages/Записування з екрана 2025-04-16 112136.gif"))
 
         self.duplicate_card_to_frame(card)
 
@@ -547,6 +605,15 @@ class MainWindow():
                             background-color: #1f618d; /* Колір кнопки при натисканні */
                         }}
                     """)
+        try:
+            self.button_help.clicked.disconnect()
+        except Exception:
+            pass  # Якщо немає підключених обробників, ігноруємо помилку
+
+        # Підключення сигналу "clicked" до обробника
+        self.button_help.clicked.connect(
+            partial(self.showHelpWindow, self.widgetsText["button_help"][self.widgetsLanguage],
+                    "FingerImages/Записування з екрана 2025-04-16 112136.gif"))
 
     # Функція для створення картки виду вправ
     def create_card(self, title_text, description_text, image_path, parent=None):
@@ -752,6 +819,16 @@ class MainWindow():
                             }}
                         """)
 
+        try:
+            self.button_help.clicked.disconnect()
+        except Exception:
+            pass  # Якщо немає підключених обробників, ігноруємо помилку
+
+        # Підключення сигналу "clicked" до обробника
+        self.button_help.clicked.connect(
+            partial(self.showHelpWindow, self.widgetsText["button_help_ForUserLevels"][self.widgetsLanguage],
+                    "FingerImages/Записування з екрана 2025-04-16 112136.gif"))
+
         self.duplicate_card_to_frame(card)
 
         # ------------------------------------------------------------------------------------------------------------------Кнопка для повернення на головну сторінку
@@ -794,7 +871,7 @@ class MainWindow():
         button_return.clicked.connect(
             partial(self.hide_select_level_click))
 
-        # ------------------------------------------------------------------------------------------------------------------Фрейм для відображення кнопок
+        # ------------------------------------------------------------------------------------------------------------------Фрейм для відображення фреймів
 
         scenario = QFrame(self.select_Level)
         scenario.setGeometry(490, 100, 770, 750)
@@ -839,11 +916,28 @@ class MainWindow():
 
         level_cv_frame.raise_()
 
+    # Функція для перевірки версії застосунку
+    def check_for_updates(self):
+        Version = "1.0.0"
+        try:
+            response = requests.get(f"https://api.github.com/repos/Whowrite/Dyplome_gesture/releases/latest")
+            response.raise_for_status()
+            latest_version = response.json()["tag_name"].lstrip("v")  # Припускаємо, що тег виглядає як "v1.0.0"
+
+            if version.parse(latest_version) > version.parse(Version):
+                print(f"Доступна нова версія {latest_version}! Поточна версія: {Version}")
+                return latest_version
+            else:
+                print("Ви використовуєте останню версію.")
+                return None
+        except requests.RequestException as e:
+            print(f"Помилка перевірки оновлень: {e}")
+            return None
+
     # Функція для збереження відвідування користувача застосунку
     def addUserVisits(self):
         print("Доброго дня користувач")
         # Запит до бд
-
 
 
 if __name__ == "__main__":
