@@ -1,7 +1,7 @@
-import sys
+import sys, cv2, webbrowser
 import mediapipe as mp
 from PyQt5.QtWidgets import QApplication, QLabel, QWidget, QMainWindow, QPushButton, QScrollArea, QFrame, QHBoxLayout, \
-    QGraphicsOpacityEffect, QMessageBox
+    QGraphicsOpacityEffect, QMessageBox, QProgressBar
 from PyQt5.QtGui import QImage, QPixmap, QFont, QIcon, QTransform, QMovie
 from PyQt5.QtCore import QTimer, Qt, QSize
 from functools import partial
@@ -16,8 +16,14 @@ class MainWindow():
         self.widgetsLanguage = 0
         self.widgetsText = {
             "title_window": ['Потренуємо ваші нейрони', 'ToTrainYourNeurons'],
+            "About_program": ['Тренування нейропсихологічних вправ', 'Neuropsychological exercise training'],
+            "About_programmmer": ['Розробник: Саприкін Антон Владиславович', 'Developer: Anton Saprykin'],
             "button_start": ['Спробувати', 'Try it'],
             "msg_box": [ ['Повідомлення', 'Вибачте, але рівень ще в стадії розробки😅'], ['Message', 'Sorry, but the level is still under development😅']],
+            "msg_box2": [ ['Перевірка оновлень', 'Check for updates'], ['Чи бажаєте встановити оновлення?', 'Would you like to install an update?'],
+                          ['Так', 'Yes'], ['Ні', 'No']],
+            "msg_box3": [ ['Помилка', 'Error'], ['Камера не знайдена!!!\nПеревірте справність основної камери пристрою: ',
+                         'Camera not found!!!\nCheck the main camera of the device for proper operation: ']],
             "best_try_level": ['Найкращий результат: ', 'The best result: '],
             "number_try_level": ['Кількість спроб: ', 'Count of attempts: '],
             "start_level_button": ['Почати', 'Start'],
@@ -34,6 +40,8 @@ class MainWindow():
         self.button_help = None
         self.settings_frame = None
         self.button_settings = None
+        self.best_try_level_num = None
+        self.number_try_level_num = None
 
         # Оголошення зв'язків з модулями застосунку
         self.levelCounting = LelelCounting.CreateLevel()
@@ -41,14 +49,136 @@ class MainWindow():
         self.settingsModule = None
         self.Music = Music.Music()
 
-    # Функція для ініціалізації зв'язку з модулем налаштувань
+    # Функція для ініціалізації зв'язків між модулями та показу фрейму "Зававантаження"
     def setMainWindowLink(self, MainWindowLink):
-        self.check_for_updates()
         self.MainWindowLink = MainWindowLink
         self.settingsModule = SettingsModule.SettingsModule(self.MainWindowLink, self.levelCounting, self.Music)
-        # self.settingsModule = SettingsModule.SettingsModule(self.MainWindowLink, self.levelCounting)
         self.settingsModule.uploadSettings()
-        self.addUserVisits()
+        # --------------------------------------------------------------------------------------------------------------Фрейм "Зававантаження"
+        loadingFrame = QFrame(self.window)
+        loadingFrame.setGeometry(0, 0, 1315, 917)
+        loadingFrame.show()
+        loadingFrame.setStyleSheet(f"""
+                            QFrame {{
+                                background-color: {self.widgetsColor[0]}; /* Фон картки */
+                                border-radius: 10px; /* Закруглені кути */
+                            }}
+                        """)
+
+        title_program = QLabel(loadingFrame)
+        title_program.setGeometry(310, 300, 700, 75)
+        title_program.setText(self.widgetsText["title_window"][self.widgetsLanguage])
+
+        font = QFont()
+        font.setBold(True)
+        font.setPointSize(27)
+        title_program.setFont(font)
+
+        title_program.setFrameShape(QLabel.StyledPanel)
+        title_program.setFrameShadow(QLabel.Plain)
+        title_program.setAlignment(Qt.AlignCenter)
+        title_program.show()
+        title_program.setStyleSheet(f"""
+                        QLabel {{
+                            background-color: {self.widgetsColor[1]}; /* Колір фону */
+                            color: black; /* Колір тексту */
+                            border-radius: 10px; /* Закруглення кутів */
+                        }}
+                    """)
+        # ------------------------------------------------------------------------------
+        About_program = QLabel(loadingFrame)
+        About_program.setGeometry(390, 400, 530, 45)
+        About_program.setText(self.widgetsText["About_program"][self.widgetsLanguage])
+
+        font = QFont()
+        font.setBold(True)
+        font.setPointSize(14)
+        About_program.setFont(font)
+
+        About_program.setFrameShape(QLabel.StyledPanel)
+        About_program.setFrameShadow(QLabel.Plain)
+        About_program.setAlignment(Qt.AlignCenter)
+        About_program.show()
+        About_program.setStyleSheet(f"""
+                                QLabel {{
+                                    background-color: {self.widgetsColor[1]}; /* Колір фону */
+                                    color: black; /* Колір тексту */
+                                    border-radius: 10px; /* Закруглення кутів */
+                                }}
+                            """)
+        # ------------------------------------------------------------------------------
+        progress_bar = QProgressBar(loadingFrame)
+        progress_bar.setGeometry(200, 570, 900, 55)
+        progress_bar.setMinimum(0)
+        progress_bar.setMaximum(100)
+        progress_bar.setValue(0)
+        # progress_bar.setFormat("%v/%m")  # Показує поточне значення / максимум (наприклад, 7/10)
+        progress_bar.setAlignment(Qt.AlignCenter)  # Вирівнювання тексту по центру
+        progress_bar.setStyleSheet("""
+                        QProgressBar {
+                            border: none;
+                            border-radius: 15px;
+                            background-color: #FFFFFF;  /* Колір фону */
+                        }
+                        QProgressBar::chunk {
+                            background-color: #DFFF4F;  /* Колір заповнення */
+                            border-radius: 15px;
+                        }
+                    """)
+        progress_bar.show()
+
+        # ------------------------------------------------------------------------------
+        About_programmmer = QLabel(loadingFrame)
+        About_programmmer.setGeometry(480, 860, 350, 40)
+        About_programmmer.setText(self.widgetsText["About_programmmer"][self.widgetsLanguage])
+
+        font = QFont()
+        font.setBold(True)
+        font.setPointSize(8)
+        About_programmmer.setFont(font)
+
+        About_programmmer.setFrameShape(QLabel.StyledPanel)
+        About_programmmer.setFrameShadow(QLabel.Plain)
+        About_programmmer.setAlignment(Qt.AlignCenter)
+        About_programmmer.show()
+        About_programmmer.setStyleSheet(f"""
+                                        QLabel {{
+                                            background-color: {self.widgetsColor[1]}; /* Колір фону */
+                                            color: black; /* Колір тексту */
+                                            border-radius: 10px; /* Закруглення кутів */
+                                        }}
+                                    """)
+
+        # --------------------------------------------------------------------------------------------------------------
+        # Анімація прогрес-бару
+        def update_progress():
+            current_value = progress_bar.value()
+            if current_value < 100:
+                if current_value == 20:
+                    if self.is_camera_available() == False:
+                        # Створюємо повідомлення
+                        msg_box = QMessageBox()
+                        msg_box.setIcon(QMessageBox.Critical)
+                        msg_box.setWindowTitle(self.widgetsText["msg_box3"][0][self.widgetsLanguage])
+                        msg_box.setText(self.widgetsText["msg_box3"][1][self.widgetsLanguage])
+                        # Відображаємо повідомлення
+                        msg_box.exec_()
+                        QApplication.quit()
+                elif current_value == 40:
+                    Version, latest_version = self.check_for_updates()
+                    if Version != None and latest_version != None:
+                        self.show_messagebox_yesNo(Version, latest_version)
+                elif current_value == 60:
+                    self.levelCounting.LevelStatistics = self.levelCounting.load_level_statistics()
+                elif current_value == 80:
+                    self.addUserVisits()
+                progress_bar.setValue(current_value + 20)
+                QTimer.singleShot(1500, update_progress)
+            else:
+                loadingFrame.hide()
+
+        # Запускаємо оновлення прогрес-бару через 1.5 секунди
+        QTimer.singleShot(1500, update_progress)
 
     # Функція для зміни мови додатку
     def setLanguage(self, Language):
@@ -103,8 +233,7 @@ class MainWindow():
     # Головна функція
     def mainWindow(self, Main):
         # Головне вікно застосунку
-        # self.window = RebuildsComponents.MainWindow(self.Music)
-        self.window = RebuildsComponents.MainWindow(self.Music)
+        self.window = RebuildsComponents.MainWindow(self.Music, self.levelCounting)
 
         # ------------------------------------------------------------------------------------------------------------------Фрейм Налаштувань
 
@@ -253,9 +382,7 @@ class MainWindow():
         unvisible_frame.raise_()
         self.settings_frame.raise_()
 
-        # ------------------------------------------------------------------------------------------------------------------Закриття програми
         self.window.show()
-        self.setMainWindowLink(Main)
 
     # Функція-обробник кнопки для демонстрації вікна довідки
     def showHelpWindow(self, helpText, helpGif):
@@ -483,8 +610,8 @@ class MainWindow():
 
         # ------------------------------------------------------------------------------------------------------------------Кнопки вибірки рівня
 
-        self.show_levels_buttons(levels, 40, 1, level_status)
-        self.show_levels_buttons(levels, 260, 4, level_status)
+        self.show_levels_buttons(levels, 40, 1, level_status, card.objectName())
+        self.show_levels_buttons(levels, 260, 4, level_status, card.objectName())
 
         # ------------------------------------------------------------------------------------------------------------------Відображення найкращого проходження рівня
 
@@ -500,10 +627,10 @@ class MainWindow():
                     }
                 """)
 
-        best_try_level_num = QLabel(level_status)
-        best_try_level_num.setGeometry(300, 50, 50, 50)
-        best_try_level_num.setText("0 🖐️")
-        best_try_level_num.setStyleSheet("""
+        self.best_try_level_num = QLabel(level_status)
+        self.best_try_level_num.setGeometry(300, 50, 50, 50)
+        self.best_try_level_num.setText("0 🖐️")
+        self.best_try_level_num.setStyleSheet("""
                         QLabel {
                             background-color: none; /* Колір фону */
                             color: black; /* Колір тексту */
@@ -527,10 +654,10 @@ class MainWindow():
                         }
                     """)
 
-        number_try_level_num = QLabel(level_status)
-        number_try_level_num.setGeometry(300, 130, 50, 50)
-        number_try_level_num.setText("0")
-        number_try_level_num.setStyleSheet("""
+        self.number_try_level_num = QLabel(level_status)
+        self.number_try_level_num.setGeometry(300, 130, 50, 50)
+        self.number_try_level_num.setText("0")
+        self.number_try_level_num.setStyleSheet("""
                             QLabel {
                                 background-color: none; /* Колір фону */
                                 color: black; /* Колір тексту */
@@ -677,7 +804,7 @@ class MainWindow():
         duplicated_card.show()
 
     # Функція для відображення рівнів 1-6 у фреймі вибірки рівня (див. visible_select_level_click() )
-    def show_levels_buttons(self, levels, stepY, num, level_status):
+    def show_levels_buttons(self, levels, stepY, num, level_status, cardName):
         # ------------------------------------------------------------------------------------------------------------------Кнопки вибірки рівня
         stepX = 0
         points = 3
@@ -717,7 +844,7 @@ class MainWindow():
             button_level.setChecked(False)
 
             # Підключення сигналу "clicked" до обробника
-            button_level.clicked.connect(partial(self.select_level_click, button_level, level_status))
+            button_level.clicked.connect(partial(self.select_level_click, button_level, level_status, cardName))
 
             textForLevels = QLabel(button_level)
             textForLevels.setGeometry(68, 3, 200, 50)
@@ -727,7 +854,7 @@ class MainWindow():
             num += 1
 
     # Функція-обробник кнопки для відображення інфо проходження рівня (див. show_levels_buttons() )
-    def select_level_click(self, current_button_level, level_status):
+    def select_level_click(self, current_button_level, level_status, cardName):
         # Блокування всіх інших кнопок
         parent_frame = current_button_level.parent()  # Отримати батьківський фрейм
         for child in parent_frame.findChildren(QPushButton):
@@ -756,6 +883,17 @@ class MainWindow():
                     """)
             level_status.show()
             self.current_game_level = current_button_level.objectName()
+            print(f"def select_level_click(): {cardName}")
+            if cardName == "Жести однією рукою" or cardName == "Gestures with one hand":
+                self.best_try_level_num.setText(
+                    f"{self.levelCounting.LevelStatistics["Жести однією рукою"][self.current_game_level][0]} 🖐️")
+                self.number_try_level_num.setText(
+                    f"{self.levelCounting.LevelStatistics["Жести однією рукою"][self.current_game_level][1]}")
+            elif cardName == "Жести двума руками" or cardName == "Gestures with two hand":
+                self.best_try_level_num.setText(
+                    f"{self.levelCounting.LevelStatistics["Жести двума руками"][self.current_game_level][0]} 🖐️")
+                self.number_try_level_num.setText(
+                    f"{self.levelCounting.LevelStatistics["Жести двума руками"][self.current_game_level][1]}")
         else:
             level_status.hide()
             current_button_level.setChecked(False)
@@ -918,7 +1056,7 @@ class MainWindow():
 
     # Функція для перевірки версії застосунку
     def check_for_updates(self):
-        Version = "1.0.0"
+        Version = "1.0.2"
         try:
             response = requests.get(f"https://api.github.com/repos/Whowrite/Dyplome_gesture/releases/latest")
             response.raise_for_status()
@@ -926,13 +1064,63 @@ class MainWindow():
 
             if version.parse(latest_version) > version.parse(Version):
                 print(f"Доступна нова версія {latest_version}! Поточна версія: {Version}")
-                return latest_version
+                return Version, latest_version
             else:
                 print("Ви використовуєте останню версію.")
-                return None
+                return None, None
         except requests.RequestException as e:
             print(f"Помилка перевірки оновлень: {e}")
-            return None
+            return None, None
+
+    # Перевіряє, чи є доступна камера на пристрої.
+    def is_camera_available(self):
+        """
+        Returns:
+            bool: True, якщо камера доступна, False - якщо ні.
+        """
+        try:
+            # Спроба відкрити камеру з індексом 0 (зазвичай вбудована камера)
+            cap = cv2.VideoCapture(0)
+            if cap is None or not cap.isOpened():
+                print("Камера не знайдена або недоступна")
+                return False
+            print("Камера знайдена")
+            cap.release()  # Звільняємо камеру
+            return True
+        except Exception as e:
+            print(f"Помилка при перевірці камери: {e}")
+            return False
+
+    def show_messagebox_yesNo(self, Version, latest_version):
+        update_url = "https://github.com/Whowrite/Dyplome_gesture"
+        # Створюємо повідомлення
+        msg_box = QMessageBox()
+        msg_box.setIcon(QMessageBox.Information)  # Іконка: Information, Warning, Critical, Question
+        msg_box.setWindowTitle(self.widgetsText["msg_box2"][0][self.widgetsLanguage])
+        if self.widgetsLanguage == 0:
+            msg_box.setText(f"Доступна нова версія {latest_version}! Поточна версія: {Version}")
+        elif self.widgetsLanguage == 1:
+            msg_box.setText(f"A new version is available {latest_version}! Current version: {Version}")
+        msg_box.setInformativeText(self.widgetsText["msg_box2"][1][self.widgetsLanguage])
+        msg_box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        btn_yes = msg_box.button(QMessageBox.Yes)
+        btn_no = msg_box.button(QMessageBox.No)
+        btn_yes.setText(self.widgetsText["msg_box2"][2][self.widgetsLanguage])
+        btn_no.setText(self.widgetsText["msg_box2"][3][self.widgetsLanguage])
+        # Відображаємо повідомлення та отримуємо результат
+        msg_box.exec_()
+        # Обробка дій користувача
+        clicked_button = msg_box.clickedButton()
+        if clicked_button == btn_yes:
+            print("Натиснуто Так")
+            try:
+                webbrowser.open(update_url)
+                print(f"Відкрито сторінку: {update_url}")
+                QApplication.quit()
+            except Exception as e:
+                print(f"Помилка при відкритті браузера: {e}")
+        elif clicked_button == btn_no:
+            print("Натиснуто Ні")
 
     # Функція для збереження відвідування користувача застосунку
     def addUserVisits(self):
@@ -944,4 +1132,5 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     main = MainWindow()
     main.mainWindow(main)
+    main.setMainWindowLink(main)
     sys.exit(app.exec_())

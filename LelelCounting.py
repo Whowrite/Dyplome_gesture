@@ -1,5 +1,4 @@
-import time
-import cv2
+import json, os, cv2
 import HandTModule as htm
 import CollectionLevels as Cl
 from PyQt5.QtWidgets import QApplication, QLabel, QWidget, QPushButton, QFrame, QHBoxLayout, \
@@ -36,6 +35,24 @@ class CreateLevel:
                          "Бажаєте пройти рівень заново?", "Так", "Ні"],
                         ['Message', 'The level is completed!', "Would you like to continue?", "Good", "You have done ", " errors during the level passage!",
                          "Do you want to go through the level again?", "Yes", "No"]],
+        }
+        self.LevelStatistics = {
+            "Жести однією рукою": {
+                "button_level_1": [0, 0],
+                "button_level_2": [0, 0],
+                "button_level_3": [0, 0],
+                "button_level_4": [0, 0],
+                "button_level_5": [0, 0],
+                "button_level_6": [0, 0]
+            },
+            "Жести двума руками": {
+                "button_level_1": [0, 0],
+                "button_level_2": [0, 0],
+                "button_level_3": [0, 0],
+                "button_level_4": [0, 0],
+                "button_level_5": [0, 0],
+                "button_level_6": [0, 0]
+            }
         }
 
     # Функція для зміни мови додатку
@@ -500,6 +517,39 @@ class CreateLevel:
                 print("Натиснуто Ні")
                 return True
 
+    # Зберігає словник LevelStatistics у файл у форматі JSON.
+    def save_level_statistics(self, filename="level_statistics.json"):
+        """
+        Args:
+            statistics (dict): Словник зі статистикою рівнів
+            filename (str): Ім'я файлу для збереження (за замовчуванням level_statistics.json)
+        """
+        try:
+            with open(filename, 'w', encoding='utf-8') as file:
+                json.dump(self.LevelStatistics, file, ensure_ascii=False, indent=4)
+            print(f"Дані успішно збережено у файл {filename}")
+        except Exception as e:
+            print(f"Помилка при збереженні даних: {e}")
+
+    # Зчитує словник LevelStatistics з файлу JSON.
+    def load_level_statistics(self, filename="level_statistics.json"):
+        """
+        Args:
+            filename (str): Ім'я файлу для зчитування (за замовчуванням level_statistics.json)
+        Returns:
+            dict: Словник зі статистикою рівнів або None у разі помилки
+        """
+        try:
+            if os.path.exists(filename):
+                with open(filename, 'r', encoding='utf-8') as file:
+                    return json.load(file)
+            else:
+                print(f"Файл {filename} не знайдено")
+                return None
+        except Exception as e:
+            print(f"Помилка при зчитуванні даних: {e}")
+            return None
+
     # Функція для збереження статистики про використані жести
     def addAnswerCorrectGesture(self, answerResult):
         """
@@ -514,7 +564,11 @@ class CreateLevel:
             # Якщо жест новий, додаємо новий запис
             self.infoAboutGestures[gesture_name] = [answerResult, 1]
 
-    # Функція для оновлення статистики про використані жести в бд
+    # Функція для оновлення статистики про використані жести в бд та level_statistics.json
     def addStatisticsGesture(self):
+        resultOfLevel = self.numberTasks - self.errorAnswers
+        if self.LevelStatistics[self.card_name][self.current_game_level][0] < resultOfLevel:
+            self.LevelStatistics[self.card_name][self.current_game_level][0] = resultOfLevel
+        self.LevelStatistics[self.card_name][self.current_game_level][1] += 1
         print(f"Назва режиму гри: {self.card_name}")
         print(f"Статистика пройденого рівня: \n{self.infoAboutGestures}")

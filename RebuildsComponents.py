@@ -39,8 +39,9 @@ class ModalWindow(QDialog):
 
 
 class MainWindow(QMainWindow):
-    def __init__(self, Music):
+    def __init__(self, Music, levelCounting):
         super().__init__()
+        self.levelCounting = levelCounting
         self.music = Music
         self.widgetsColor = ["#9EFFA5", "#DAFFDF"]
         self.widgetsLanguage = 0
@@ -67,6 +68,7 @@ class MainWindow(QMainWindow):
         self.saveSettings()
         self.saveSessionTime()
         self.music.stop_music()
+        self.levelCounting.save_level_statistics()
         event.accept()  # Дозволяємо вікну закритися
 
     def saveSettings(self):
