@@ -54,13 +54,19 @@ class CreateLevel:
                 "button_level_6": [0, 0]
             }
         }
+        self.connection = None
+
+    # Встановлення підключення до бд
+    def set_connect_ToBD(self, con):
+        self.connection = con
+        print("Підлючення встановлено: LelelCounting")
 
     # Функція для зміни мови додатку
     def setLanguage(self, Language):
         self.widgetsLanguage = Language
         # print(f"class CreateLevel(): def setLanguage(self, Language): {Language}")
 
-    # Функція для зміни мови додатку
+    # Функція для зміни кольору додатку
     def setColor(self, color):
         self.widgetsColor = color
         # print(f"class CreateLevel(): def setColor(self, color): {color}")

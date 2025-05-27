@@ -10,11 +10,12 @@ class SettingsModule:
     def __init__(self, main, level_counting, music):
         self.widgetsLanguage = 0
         self.widgetsColor = ["#9EFFA5", "#DAFFDF"]
+        self.connection = None
         self.main_window = main
         self.level_counting = level_counting
         self.Music = music
-        self.Music.play_music()  # Початок відтворення
-        self.button_Music_Checked = False
+        # self.Music.play_music()  # Початок відтворення
+        self.button_Music_Checked = True
         self.widgetsText = {
             "label_language": ['Мова 🌐', 'Language 🌐'],
             "radio_ukrainian": ['Українська', 'Ukrainian'],
@@ -67,6 +68,7 @@ class SettingsModule:
         self.button_Statistics = None
         self.button_Music = None
 
+    # Функція для зміни мови додатку
     def set_language(self, lang):
         if lang in [0, 1]:
             self.widgetsLanguage = lang
@@ -75,6 +77,7 @@ class SettingsModule:
             self.level_counting.setLanguage(lang)
             self.update_ui()
 
+    # Функція для зміни кольору додатку
     def set_color(self, color):
         if color[0] in ["9EFFA5", "CA9EFF", "FFCD9E", "FF9EBB"] and color[1] in ["DAFFDF", "F9DAFF", "FFEBDA", "FFDAEC"]:
             self.widgetsColor[0] = f'#{color[0]}'
@@ -83,6 +86,12 @@ class SettingsModule:
             self.level_counting.setColor(self.widgetsColor)
             self.update_ui()
 
+    # Встановлення підключення до бд
+    def set_connect_ToBD(self, con):
+        self.connection = con
+        print("Підлючення встановлено: SettingsModule")
+
+    # Функція для оновлення візуалу компонентів вікна
     def update_ui(self):
         if self.label_language:
             self.label_language.setText(self.widgetsText["label_language"][self.widgetsLanguage])

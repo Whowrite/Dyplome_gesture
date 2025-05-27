@@ -1,4 +1,6 @@
-import sys, cv2, webbrowser
+import sys, cv2, webbrowser, sqlite3
+from sqlite3 import Error
+from datetime import datetime
 import mediapipe as mp
 from PyQt5.QtWidgets import QApplication, QLabel, QWidget, QMainWindow, QPushButton, QScrollArea, QFrame, QHBoxLayout, \
     QGraphicsOpacityEffect, QMessageBox, QProgressBar
@@ -44,6 +46,7 @@ class MainWindow():
         self.number_try_level_num = None
 
         # Оголошення зв'язків з модулями застосунку
+        self.connection = None
         self.levelCounting = LelelCounting.CreateLevel()
         self.MainWindowLink = None
         self.settingsModule = None
@@ -154,7 +157,7 @@ class MainWindow():
         def update_progress():
             current_value = progress_bar.value()
             if current_value < 100:
-                if current_value == 20:
+                if current_value == 0:
                     if self.is_camera_available() == False:
                         # Створюємо повідомлення
                         msg_box = QMessageBox()
@@ -164,12 +167,19 @@ class MainWindow():
                         # Відображаємо повідомлення
                         msg_box.exec_()
                         QApplication.quit()
-                elif current_value == 40:
+                elif current_value == 20:
                     Version, latest_version = self.check_for_updates()
                     if Version != None and latest_version != None:
                         self.show_messagebox_yesNo(Version, latest_version)
-                elif current_value == 60:
+                elif current_value == 40:
                     self.levelCounting.LevelStatistics = self.levelCounting.load_level_statistics()
+                elif current_value == 60:
+                    self.connect_toBD('database\statistics.db')
+                    self.levelCounting.set_connect_ToBD(self.connection)
+                    self.settingsModule.set_connect_ToBD(self.connection)
+                    self.settingsModule.set_connect_ToBD(self.connection)
+                    self.window.set_connect_ToBD(self.connection)
+                    self.print_all_tables()
                 elif current_value == 80:
                     self.addUserVisits()
                 progress_bar.setValue(current_value + 20)
@@ -231,7 +241,7 @@ class MainWindow():
         self.window.set_language(self.widgetsLanguage)
 
     # Головна функція
-    def mainWindow(self, Main):
+    def mainWindow(self):
         # Головне вікно застосунку
         self.window = RebuildsComponents.MainWindow(self.Music, self.levelCounting)
 
@@ -1122,15 +1132,153 @@ class MainWindow():
         elif clicked_button == btn_no:
             print("Натиснуто Ні")
 
+    # Функція для встановлення зв'язку з бд
+    def connect_toBD(self, db_file):
+        print("Перевірка з'єднання з бд")
+        try:
+            # Підключення до бази даних (створюється, якщо не існує)
+            self.connection = sqlite3.connect(db_file)
+            print(f"Успішно підключено до бази даних: {db_file}")
+
+            # Створення курсора
+            cursor = self.connection.cursor()
+
+            # Створення таблиці Sessions
+            cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS Sessions (
+                        session_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        login_date DATE NOT NULL,
+                        session_length INTEGER NOT NULL
+                    )
+                ''')
+
+            # Створення таблиці GameModes
+            cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS GameModes (
+                        mode_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        mode_name VARCHAR(255) NOT NULL
+                    )
+                ''')
+
+            # Створення таблиці SessionGameModes
+            cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS SessionGameModes (
+                        session_id INTEGER NOT NULL,
+                        mode_id INTEGER NOT NULL,
+                        usage_count INTEGER NOT NULL,
+                        PRIMARY KEY (session_id, mode_id),
+                        FOREIGN KEY (session_id) REFERENCES Sessions(session_id) ON DELETE CASCADE,
+                        FOREIGN KEY (mode_id) REFERENCES GameModes(mode_id) ON DELETE CASCADE
+                    )
+                ''')
+
+            # Створення таблиці Gestures
+            cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS Gestures (
+                        gesture_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        gesture_name VARCHAR(255) NOT NULL
+                    )
+                ''')
+
+            # Створення таблиці SessionGestures
+            cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS SessionGestures (
+                        session_id INTEGER NOT NULL,
+                        gesture_id INTEGER NOT NULL,
+                        correct_answers INTEGER NOT NULL,
+                        total_answers INTEGER NOT NULL,
+                        PRIMARY KEY (session_id, gesture_id),
+                        FOREIGN KEY (session_id) REFERENCES Sessions(session_id) ON DELETE CASCADE,
+                        FOREIGN KEY (gesture_id) REFERENCES Gestures(gesture_id) ON DELETE CASCADE
+                    )
+                ''')
+
+            # Збереження змін
+            self.connection.commit()
+            print("Таблиці успішно створено або вже існують.")
+        except Error as e:
+            print(f"Помилка при створенні бази даних: {e}")
+            if self.connection:
+                self.connection.close()
+            return None
+
+    # Функція для виводу всіх даних з таблиць бд
+    def print_all_tables(self):
+        try:
+            # Створення курсора
+            cursor = self.connection.cursor()
+
+            # Отримання списку всіх таблиць у базі даних
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+            tables = cursor.fetchall()
+
+            if not tables:
+                print("База даних не містить таблиць.")
+                return
+
+            # Перебір кожної таблиці
+            for table in tables:
+                table_name = table[0]
+                print(f"\n=== Таблиця: {table_name} ===")
+
+                # Отримання структури таблиці (назви стовпців)
+                cursor.execute(f"PRAGMA table_info({table_name});")
+                columns = cursor.fetchall()
+                column_names = [col[1] for col in columns]
+                print("Стовпці:", ", ".join(column_names))
+
+                # Отримання всіх даних із таблиці
+                cursor.execute(f"SELECT * FROM {table_name};")
+                rows = cursor.fetchall()
+
+                if not rows:
+                    print("Дані відсутні.")
+                else:
+                    print("Дані:")
+                    for row in rows:
+                        # Форматування виводу для зрозумілості
+                        formatted_row = [str(item) for item in row]
+                        print(f"  {formatted_row}")
+
+            # Не закриваємо з'єднання, оскільки воно передане через self.connection
+
+        except Exception as e:
+            print(f"Помилка при виведенні таблиць: {e}")
+
     # Функція для збереження відвідування користувача застосунку
     def addUserVisits(self):
         print("Доброго дня користувач")
-        # Запит до бд
+        try:
+            # Створення курсора
+            cursor = self.connection.cursor()
+
+            # Отримання поточної дати у форматі 'YYYY-MM-DD'
+            current_date = datetime.now().strftime('%Y-%m-%d')
+
+            # Запит для перевірки наявності сесії в поточний день
+            cursor.execute("SELECT session_id FROM Sessions WHERE login_date = ?", (current_date,))
+            existing_session = cursor.fetchone()
+
+            if existing_session:
+                # Якщо сесія вже існує, відхиляємо запит
+                print(f"Сесія за {current_date} вже існує. Запит відхилено.")
+                return
+
+            # Якщо сесії немає, додаємо нову з session_length=0
+            cursor.execute(
+                "INSERT INTO Sessions (login_date, session_length) VALUES (?, ?)",
+                (current_date, 0)
+            )
+            self.connection.commit()
+            print(f"Нову сесію за {current_date} додано успішно.")
+
+        except Exception as e:
+            print(f"Помилка при збереженні відвідування: {e}")
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     main = MainWindow()
-    main.mainWindow(main)
+    main.mainWindow()
     main.setMainWindowLink(main)
     sys.exit(app.exec_())

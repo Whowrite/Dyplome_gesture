@@ -1,7 +1,8 @@
 from PyQt5.QtWidgets import QFrame, QDialog, QLabel, QMainWindow
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import Qt, QTimer
-import sys
+from datetime import datetime
+import sqlite3
 
 class ClickableFrame(QFrame):
     clicked = pyqtSignal()  # створюємо власний сигнал
@@ -41,6 +42,7 @@ class ModalWindow(QDialog):
 class MainWindow(QMainWindow):
     def __init__(self, Music, levelCounting):
         super().__init__()
+        self.connection = None
         self.levelCounting = levelCounting
         self.music = Music
         self.widgetsColor = ["#9EFFA5", "#DAFFDF"]
@@ -60,6 +62,11 @@ class MainWindow(QMainWindow):
             }}
         """)
 
+    # Встановлення підключення до бд
+    def set_connect_ToBD(self, con):
+        self.connection = con
+        print("Підлючення встановлено: MainWindow:")
+
     def closeEvent(self, event):
         """
         Перевизначаємо подію закриття вікна, щоб зберегти налаштування перед виходом.
@@ -69,6 +76,7 @@ class MainWindow(QMainWindow):
         self.saveSessionTime()
         self.music.stop_music()
         self.levelCounting.save_level_statistics()
+        self.connection.close()
         event.accept()  # Дозволяємо вікну закритися
 
     def saveSettings(self):
@@ -107,10 +115,54 @@ class MainWindow(QMainWindow):
         self.session_time += 1
 
     def saveSessionTime(self):
-        self.session_timer.stop()
-        # Форматуємо час у зручний вигляд (години:хвилини:секунди)
-        hours = self.session_time // 3600
-        minutes = (self.session_time % 3600) // 60
-        seconds = self.session_time % 60
-        session_str = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
-        print(f"Ваша сесія тривала: {session_str}")
+        try:
+            # Зупинка таймера
+            self.session_timer.stop()
+
+            # Форматування часу у зручний вигляд (години:хвилини:секунди)
+            hours = self.session_time // 3600
+            minutes = (self.session_time % 3600) // 60
+            seconds = self.session_time % 60
+            session_str = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+            print(f"Ваша сесія тривала: {session_str}")
+
+            # Створення курсора
+            cursor = self.connection.cursor()
+
+            # Отримання поточної дати у форматі 'YYYY-MM-DD'
+            current_date = datetime.now().strftime('%Y-%m-%d')
+
+            # Пошук сесії за поточною датою
+            cursor.execute("SELECT session_id, session_length FROM Sessions WHERE login_date = ?", (current_date,))
+            session = cursor.fetchone()
+
+            if not session:
+                print(f"Сесія за {current_date} не знайдена.")
+                return
+
+            session_id, current_session_length = session
+
+            # Перевірка тривалості сесії
+            if current_session_length == 0:
+                # Якщо тривалість 0, оновлюємо до нового значення
+                cursor.execute(
+                    "UPDATE Sessions SET session_length = ? WHERE session_id = ?",
+                    (self.session_time, session_id)
+                )
+                self.connection.commit()
+                print(f"Тривалість сесії за {current_date} оновлено до {self.session_time} секунд.")
+            elif self.session_time > current_session_length:
+                # Якщо нове значення більше за поточне, оновлюємо
+                cursor.execute(
+                    "UPDATE Sessions SET session_length = ? WHERE session_id = ?",
+                    (self.session_time, session_id)
+                )
+                self.connection.commit()
+                print(f"Тривалість сесії за {current_date} оновлено до {self.session_time} секунд.")
+            else:
+                # Якщо нове значення не більше за поточне, залишаємо як є
+                print(
+                    f"Тривалість сесії за {current_date} ({current_session_length} секунд) не змінено, оскільки нове значення ({self.session_time} секунд) не більше.")
+
+        except Exception as e:
+            print(f"Помилка при збереженні тривалості сесії: {e}")
