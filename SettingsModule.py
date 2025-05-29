@@ -5,6 +5,7 @@ from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtCore import QTimer, Qt, QSize
 from functools import partial
 import random
+from datetime import datetime
 
 class SettingsModule:
     def __init__(self, main, level_counting, music):
@@ -32,7 +33,7 @@ class SettingsModule:
             "title_facts": ['Цікаві факти', 'Interesting facts'],
             "title_correctGestures": ['Найбільше правильних жестів', 'The most correct gestures'],
             "label_mode": ['Улюблений режим:', 'Favorite mode:'],
-            "label_numberSessionsLastMonth": ['За останній місяць:', 'Over the past month:'],
+            "label_numberSessionsLastMonth": ['Кількість сесій підряд:', 'Number of sessions in a row:'],
             "label_AverageTimeSessions": ['Середній час сеансу (хв.):', 'Average session time (minutes):'],
             "title_outDeveloper": ['Порада від розробника: “Іноді лінь, може підштовхнути вас до здійснення мрій!',
                                    'A tip from the developer: "Sometimes being lazy can make you realize your dreams!'],
@@ -711,7 +712,7 @@ class SettingsModule:
 
         label_numberSessionsLastMonthAnswer = QLabel(frame_facts)
         label_numberSessionsLastMonthAnswer.setGeometry(30, 235, 410, 55)
-        label_numberSessionsLastMonthAnswer.setText(self.get_NumberSessionLastMonth())
+        label_numberSessionsLastMonthAnswer.setText(self.get_NumberSessionInARow())
         label_numberSessionsLastMonthAnswer.show()
 
         label_numberSessionsLastMonthAnswer.setFont(font3)
@@ -838,31 +839,217 @@ class SettingsModule:
     # Функція для повернення значення улюбленого режиму гри користувача
     def get_userLikeMode(self):
         userModes = {
-            "Жести однією рукою": 0,
-            "Жести двума руками": 1,
-            "Користувацький рівень": 2
+            "Gestures with one hand": 0,
+            "Gestures with two hand": 1,
+            "User level": 2
         }
-        # Додати запит до бд
-        result = "Жести однією рукою"
-        return userModes[result]
+        try:
+            # Перевірка з'єднання
+            if self.connection is None:
+                print("Помилка: з'єднання з базою даних не встановлено.")
+                return 0
 
-    # Функція для повернення значення середньої кількості сесій користувача за місяць
-    def get_NumberSessionLastMonth(self):
-        # Додати запит до бд
-        result = 15
-        return str(result)
+            # Створення курсора
+            cursor = self.connection.cursor()
+
+            # Запит для знаходження mode_id із максимальним usage_count
+            cursor.execute("""
+                    SELECT gm.mode_name
+                    FROM SessionGameModes sgm
+                    JOIN GameModes gm ON sgm.mode_id = gm.mode_id
+                    WHERE sgm.usage_count = (
+                        SELECT MAX(usage_count)
+                        FROM SessionGameModes
+                    )
+                    ORDER BY gm.mode_name ASC
+                    LIMIT 1
+                """)
+
+            # Отримання результату
+            result = cursor.fetchone()
+
+            # Обробка результату
+            if result is None:
+                print("Жодних записів у SessionGameModes не знайдено.")
+                return 0
+
+            mode_name = result[0]
+
+            # Конвертація mode_name у код за допомогою userModes
+            if mode_name not in userModes:
+                print(f"Режим гри {mode_name} не знайдено в userModes.")
+                return 0
+
+            return userModes[mode_name]
+
+        except Exception as e:
+            print(f"Помилка при визначенні улюбленого режиму гри: {e}")
+            return 0
+
+    # Функція для повернення значення кількості сесій користувача, що відбувалися підряд
+    def get_NumberSessionInARow(self):
+        """
+        Обчислює кількість послідовних днів із сесіями користувача.
+        Виконує запит до таблиці Sessions, використовуючи self.connection.
+        Повертає кількість послідовних днів як рядкове значення.
+        Якщо сесій немає, повертає "0".
+
+        Returns:
+            str: Кількість послідовних днів із сесіями.
+        """
+        try:
+            # Перевірка з'єднання
+            if self.connection is None:
+                print("Помилка: з'єднання з базою даних не встановлено.")
+                return "0"
+
+            # Створення курсора
+            cursor = self.connection.cursor()
+
+            # Запит для отримання унікальних дат сесій, відсортованих за спаданням
+            cursor.execute("""
+                SELECT DISTINCT login_date
+                FROM Sessions
+                ORDER BY login_date DESC
+            """)
+
+            # Отримання результату
+            dates = cursor.fetchall()
+
+            # Обробка результату
+            if not dates:
+                print("Жодних сесій не знайдено.")
+                return "0"
+
+            # Конвертація дат у об'єкти datetime
+            date_objects = [datetime.strptime(date[0], '%Y-%m-%d') for date in dates]
+
+            # Поточна дата
+            today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+
+            # Ініціалізація лічильника послідовних днів
+            consecutive_days = 1
+
+            # Якщо остання дата не сьогодні, перевіряємо від неї
+            last_date = date_objects[0]
+            if last_date.date() < today.date():
+                # Починаємо з останньої наявної дати
+                for i in range(1, len(date_objects)):
+                    current_date = date_objects[i]
+                    # Перевіряємо, чи різниця між датами 1 день
+                    if (last_date - current_date).days == 1:
+                        consecutive_days += 1
+                        last_date = current_date
+                    else:
+                        break
+            else:
+                # Починаємо з сьогодні, якщо є сесія
+                for i in range(1, len(date_objects)):
+                    current_date = date_objects[i]
+                    # Перевіряємо, чи різниця між датами 1 день
+                    if (last_date - current_date).days == 1:
+                        consecutive_days += 1
+                        last_date = current_date
+                    else:
+                        break
+
+            # Повернення результату як рядок
+            return str(consecutive_days)
+
+        except Exception as e:
+            print(f"Помилка при обчисленні кількості послідовних сесій: {e}")
+            return "0"
 
     # Функція для повернення значення середньої часу сесій користувача за місяць
     def get_AverageTimeSession(self):
-        # Додати запит до бд
-        result = 26
-        return str(result)
+        try:
+            # Перевірка з'єднання
+            if self.connection is None:
+                print("Помилка: з'єднання з базою даних не встановлено.")
+                return "0"
+
+            # Створення курсора
+            cursor = self.connection.cursor()
+
+            # Отримання поточного року та місяця
+            current_date = datetime.now()
+            year_month = current_date.strftime('%Y-%m')
+
+            # Запит для обчислення середнього session_length за місяць
+            cursor.execute("""
+                    SELECT AVG(session_length)
+                    FROM Sessions
+                    WHERE strftime('%Y-%m', login_date) = ?
+                """, (year_month,))
+
+            # Отримання результату
+            result = cursor.fetchone()[0]
+
+            # Обробка результату
+            if result is None:
+                print(f"За {year_month} сесій не знайдено.")
+                return "0"
+
+            # Конвертація секунд у хвилини та округлення до цілого
+            average_minutes = round(result / 60)
+
+            # Повернення результату як рядок
+            return str(average_minutes)
+
+        except Exception as e:
+            print(f"Помилка при обчисленні середнього часу сесій: {e}")
+            return "0"
 
     # Функція для повернення значення найбільш правильних жестів користувача
     def get_correctGestures(self):
-        # Додати запит до бд
-        result = [["FingerImages/both_gesture_heart.jpg", 7, 10], ["FingerImages/gesture_oke.jpg", 5, 10], ["FingerImages/both_gesture_uwu.jpg", 2, 10]]
-        return result
+        """
+            Отримує жести з найбільшою кількістю правильних відповідей із таблиці SessionGestures.
+            Конвертує gesture_name у формат 'FingerImages/<gesture_name>.jpg'.
+            Використовує self.connection для з'єднання з базою даних.
+            Повертає список у форматі [['FingerImages/<gesture_name>.jpg', correct_answers, total_answers], ...].
+            Якщо даних немає, повертає порожній список.
+
+            Returns:
+                list: Список жестів із шляхами до зображень, правильними та загальними відповідями.
+            """
+        try:
+            # Перевірка з'єднання
+            if self.connection is None:
+                print("Помилка: з'єднання з базою даних не встановлено.")
+                return []
+
+            # Створення курсора
+            cursor = self.connection.cursor()
+
+            # Запит для отримання gesture_name, correct_answers, total_answers
+            cursor.execute("""
+                    SELECT g.gesture_name, sg.correct_answers, sg.total_answers
+                    FROM SessionGestures sg
+                    JOIN Gestures g ON sg.gesture_id = g.gesture_id
+                    ORDER BY sg.correct_answers DESC, sg.total_answers DESC, g.gesture_name ASC
+                    LIMIT 3
+            """)
+
+            # Отримання результатів
+            results = cursor.fetchall()
+
+            # Обробка результатів
+            if not results:
+                print("Жодних записів у SessionGestures не знайдено.")
+                return []
+
+            # Формування списку у потрібному форматі
+            formatted_results = [
+                [f"FingerImages/{row[0]}.jpg", row[1], row[2]]
+                for row in results
+            ]
+
+            return formatted_results
+
+        except Exception as e:
+            print(f"Помилка при отриманні жестів із правильними відповідями: {e}")
+            # Повертаємо статичний результат у разі помилки
+            return []
 
     # Функція-обробник для того, щоб сховати фрейм статистки користувача
     def hide_frame_UserStatistics(self, frame_UserStatistics):

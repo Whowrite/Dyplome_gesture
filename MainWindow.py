@@ -174,7 +174,7 @@ class MainWindow():
                 elif current_value == 40:
                     self.levelCounting.LevelStatistics = self.levelCounting.load_level_statistics()
                 elif current_value == 60:
-                    self.connect_toBD('database\statistics.db')
+                    self.connect_toBD('database\\statistics.db')
                     self.levelCounting.set_connect_ToBD(self.connection)
                     self.settingsModule.set_connect_ToBD(self.connection)
                     self.settingsModule.set_connect_ToBD(self.connection)
@@ -1134,6 +1134,15 @@ class MainWindow():
 
     # Функція для встановлення зв'язку з бд
     def connect_toBD(self, db_file):
+        """
+        Встановлює з'єднання з базою даних SQLite, створює таблиці, якщо вони не існують,
+        і додає початкові записи до таблиць GameModes, Gestures, Sessions, SessionGameModes
+        і SessionGestures, перевіряючи, чи записи ще не існують. Початкові записи для
+        SessionGameModes додаються для першої сесії, а для SessionGestures — лише для gesture_id.
+
+        Args:
+            db_file (str): Шлях до файлу бази даних SQLite.
+        """
         print("Перевірка з'єднання з бд")
         try:
             # Підключення до бази даних (створюється, якщо не існує)
@@ -1145,62 +1154,121 @@ class MainWindow():
 
             # Створення таблиці Sessions
             cursor.execute('''
-                    CREATE TABLE IF NOT EXISTS Sessions (
-                        session_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        login_date DATE NOT NULL,
-                        session_length INTEGER NOT NULL
-                    )
-                ''')
+                CREATE TABLE IF NOT EXISTS Sessions (
+                    session_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    login_date DATE NOT NULL,
+                    session_length INTEGER NOT NULL
+                )
+            ''')
 
             # Створення таблиці GameModes
             cursor.execute('''
-                    CREATE TABLE IF NOT EXISTS GameModes (
-                        mode_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        mode_name VARCHAR(255) NOT NULL
-                    )
-                ''')
+                CREATE TABLE IF NOT EXISTS GameModes (
+                    mode_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    mode_name VARCHAR(255) NOT NULL
+                )
+            ''')
 
             # Створення таблиці SessionGameModes
             cursor.execute('''
-                    CREATE TABLE IF NOT EXISTS SessionGameModes (
-                        session_id INTEGER NOT NULL,
-                        mode_id INTEGER NOT NULL,
-                        usage_count INTEGER NOT NULL,
-                        PRIMARY KEY (session_id, mode_id),
-                        FOREIGN KEY (session_id) REFERENCES Sessions(session_id) ON DELETE CASCADE,
-                        FOREIGN KEY (mode_id) REFERENCES GameModes(mode_id) ON DELETE CASCADE
-                    )
-                ''')
+                CREATE TABLE IF NOT EXISTS SessionGameModes (
+                    session_id INTEGER NOT NULL,
+                    mode_id INTEGER NOT NULL,
+                    usage_count INTEGER NOT NULL,
+                    PRIMARY KEY (session_id, mode_id),
+                    FOREIGN KEY (session_id) REFERENCES Sessions(session_id) ON DELETE CASCADE,
+                    FOREIGN KEY (mode_id) REFERENCES GameModes(mode_id) ON DELETE CASCADE
+                )
+            ''')
 
             # Створення таблиці Gestures
             cursor.execute('''
-                    CREATE TABLE IF NOT EXISTS Gestures (
-                        gesture_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        gesture_name VARCHAR(255) NOT NULL
-                    )
-                ''')
+                CREATE TABLE IF NOT EXISTS Gestures (
+                    gesture_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    gesture_name VARCHAR(255) NOT NULL
+                )
+            ''')
 
-            # Створення таблиці SessionGestures
+            # Створення таблиці SessionGestures (оновлена структура)
             cursor.execute('''
-                    CREATE TABLE IF NOT EXISTS SessionGestures (
-                        session_id INTEGER NOT NULL,
-                        gesture_id INTEGER NOT NULL,
-                        correct_answers INTEGER NOT NULL,
-                        total_answers INTEGER NOT NULL,
-                        PRIMARY KEY (session_id, gesture_id),
-                        FOREIGN KEY (session_id) REFERENCES Sessions(session_id) ON DELETE CASCADE,
-                        FOREIGN KEY (gesture_id) REFERENCES Gestures(gesture_id) ON DELETE CASCADE
-                    )
-                ''')
+                CREATE TABLE IF NOT EXISTS SessionGestures (
+                    session_id INTEGER NOT NULL,
+                    gesture_id INTEGER PRIMARY KEY,
+                    correct_answers INTEGER NOT NULL,
+                    total_answers INTEGER NOT NULL,
+                    FOREIGN KEY (session_id) REFERENCES Sessions(session_id) ON DELETE CASCADE,
+                    FOREIGN KEY (gesture_id) REFERENCES Gestures(gesture_id) ON DELETE CASCADE
+                )
+            ''')
+
+            # Додавання початкових записів до таблиці GameModes
+            game_modes = ["Gestures with one hand", "Gestures with two hand", "User level"]
+            for mode_name in game_modes:
+                cursor.execute('''
+                    INSERT INTO GameModes (mode_name)
+                    SELECT ? WHERE NOT EXISTS (SELECT 1 FROM GameModes WHERE mode_name = ?)
+                ''', (mode_name, mode_name))
+
+            # Додавання початкових записів до таблиці Gestures
+            gestures = [
+                "gesture_oke", "gesture_peace", "gesture_wait", "gesture_butt",
+                "gesture_jumbo", "gesture_fingers_crossed", "gesture_little_bit", "both_gesture_heart",
+                "both_gesture_uwu", "both_gesture_camera", "both_gesture_tutupapa",
+                "both_gesture_request", "both_gesture_doubleoke", "both_gesture_school"
+            ]
+            for gesture_name in gestures:
+                cursor.execute('''
+                    INSERT INTO Gestures (gesture_name)
+                    SELECT ? WHERE NOT EXISTS (SELECT 1 FROM Gestures WHERE gesture_name = ?)
+                ''', (gesture_name, gesture_name))
+
+            # Створення першої сесії, якщо вона ще не існує
+            current_date = datetime.now().strftime('%Y-%m-%d')
+            cursor.execute("SELECT session_id FROM Sessions WHERE login_date = ?", (current_date,))
+            session = cursor.fetchone()
+            if not session:
+                cursor.execute("INSERT INTO Sessions (login_date, session_length) VALUES (?, ?)", (current_date, 0))
+                cursor.execute("SELECT session_id FROM Sessions WHERE login_date = ?", (current_date,))
+                session = cursor.fetchone()
+            session_id = session[0]
+
+            # Перевірка, чи таблиця SessionGameModes порожня
+            cursor.execute("SELECT COUNT(*) FROM SessionGameModes")
+            session_game_modes_count = cursor.fetchone()[0]
+            if session_game_modes_count == 0:
+                # Додавання початкових записів до таблиці SessionGameModes
+                for mode_id in range(1, 4):  # mode_id від 1 до 3
+                    cursor.execute('''
+                        INSERT INTO SessionGameModes (session_id, mode_id, usage_count)
+                        SELECT ?, ?, 0
+                        WHERE NOT EXISTS (
+                            SELECT 1 FROM SessionGameModes WHERE session_id = ? AND mode_id = ?
+                        )
+                    ''', (session_id, mode_id, session_id, mode_id))
+
+            # Перевірка, чи таблиця SessionGestures порожня
+            cursor.execute("SELECT COUNT(*) FROM SessionGestures")
+            session_gestures_count = cursor.fetchone()[0]
+            if session_gestures_count == 0:
+                # Додавання початкових записів до таблиці SessionGestures
+                for gesture_id in range(1, 15):  # gesture_id від 1 до 14
+                    cursor.execute('''
+                        INSERT INTO SessionGestures (session_id, gesture_id, correct_answers, total_answers)
+                        SELECT ?, ?, 0, 0
+                        WHERE NOT EXISTS (
+                            SELECT 1 FROM SessionGestures WHERE gesture_id = ?
+                        )
+                    ''', (session_id, gesture_id, gesture_id))
 
             # Збереження змін
             self.connection.commit()
-            print("Таблиці успішно створено або вже існують.")
+            print("Таблиці успішно створено або вже існують. Початкові записи додано або вже існують.")
+
         except Error as e:
             print(f"Помилка при створенні бази даних: {e}")
             if self.connection:
                 self.connection.close()
-            return None
+            self.connection = None
 
     # Функція для виводу всіх даних з таблиць бд
     def print_all_tables(self):

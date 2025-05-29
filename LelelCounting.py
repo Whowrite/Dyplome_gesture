@@ -1,4 +1,5 @@
 import json, os, cv2
+from datetime import datetime
 import HandTModule as htm
 import CollectionLevels as Cl
 from PyQt5.QtWidgets import QApplication, QLabel, QWidget, QPushButton, QFrame, QHBoxLayout, \
@@ -93,6 +94,7 @@ class CreateLevel:
             self.numberTasks = self.getNumTasks()
             print("Good luck: " + self.card_name)
             self.levelGestures = Cl.getlevelarray(self.card_name, self.current_game_level)
+        self.infoAboutGestures = {}
         level_cv_frame.show()
 
         # ------------------------------------------------------------------------------------------------------------------Мітки для відображення рук
@@ -562,19 +564,122 @@ class CreateLevel:
         Формат: { "назва жесту": [правильна відповідь, кількість використань] }
         """
         gesture_name = self.levelGestures[self.current_level][3]  # Отримуємо назву жесту
-        if gesture_name in self.infoAboutGestures:
-            # Якщо жест уже є, оновлюємо статистику
-            self.infoAboutGestures[gesture_name][0] += answerResult  # Оновлюємо правильні відповіді
-            self.infoAboutGestures[gesture_name][1] += 1  # Збільшуємо кількість використань
-        else:
-            # Якщо жест новий, додаємо новий запис
-            self.infoAboutGestures[gesture_name] = [answerResult, 1]
+        gesture_name = gesture_name.split('/')[-1] # Отримуємо ім'я файлу
+        gesture_name = gesture_name.replace('.jpg', '')  # Прибираємо .jpg
+        self.infoAboutGestures[gesture_name] = [answerResult, 1]
 
     # Функція для оновлення статистики про використані жести в бд та level_statistics.json
     def addStatisticsGesture(self):
-        resultOfLevel = self.numberTasks - self.errorAnswers
-        if self.LevelStatistics[self.card_name][self.current_game_level][0] < resultOfLevel:
-            self.LevelStatistics[self.card_name][self.current_game_level][0] = resultOfLevel
-        self.LevelStatistics[self.card_name][self.current_game_level][1] += 1
-        print(f"Назва режиму гри: {self.card_name}")
-        print(f"Статистика пройденого рівня: \n{self.infoAboutGestures}")
+        """
+        Оновлює статистику в таблицях SessionGameModes і SessionGestures.
+        - Для SessionGameModes: оновлює session_id до поточної сесії та збільшує usage_count.
+        - Для SessionGestures: шукає статистику за gesture_id, додає нові значення
+          correct_answers і total_answers із self.infoAboutGestures, оновлює session_id
+          до поточної сесії.
+        Використовує self.connection для з'єднання з базою даних.
+        """
+        try:
+            # Оновлення LevelStatistics
+            resultOfLevel = self.numberTasks - self.errorAnswers
+            if self.LevelStatistics[self.card_name][self.current_game_level][0] < resultOfLevel:
+                self.LevelStatistics[self.card_name][self.current_game_level][0] = resultOfLevel
+            self.LevelStatistics[self.card_name][self.current_game_level][1] += 1
+
+            # Переклад назви режиму гри
+            cards_names = {
+                "Жести однією рукою": "Gestures with one hand",
+                "Жести двома руками": "Gestures with two hand",
+                "Користувацький рівень": "User level"
+            }
+            if self.card_name in cards_names:
+                self.card_name = cards_names[self.card_name]
+            print(f"Назва режиму гри: {self.card_name}")
+            print(f"Статистика пройденого рівня: \n{self.infoAboutGestures}")
+
+            # Перевірка з'єднання
+            if self.connection is None:
+                print("Помилка: з'єднання з базою даних не встановлено.")
+                return
+
+            # Створення курсора
+            cursor = self.connection.cursor()
+
+            # Отримання поточної дати та пошук/створення поточної сесії
+            current_date = datetime.now().strftime('%Y-%m-%d')
+            cursor.execute("SELECT session_id FROM Sessions WHERE login_date = ?", (current_date,))
+            session = cursor.fetchone()
+            if not session:
+                cursor.execute("INSERT INTO Sessions (login_date, session_length) VALUES (?, ?)", (current_date, 0))
+                cursor.execute("SELECT session_id FROM Sessions WHERE login_date = ?", (current_date,))
+                session = cursor.fetchone()
+            session_id = session[0]
+
+            # Оновлення таблиці SessionGameModes
+            cursor.execute("SELECT mode_id FROM GameModes WHERE mode_name = ?", (self.card_name,))
+            mode = cursor.fetchone()
+            if not mode:
+                print(f"Режим гри {self.card_name} не знайдено в таблиці GameModes.")
+                return
+            mode_id = mode[0]
+
+            # Перевірка, чи існує запис для поточної сесії та режиму гри
+            cursor.execute(
+                "SELECT usage_count FROM SessionGameModes WHERE session_id = ? AND mode_id = ?",
+                (session_id, mode_id)
+            )
+            existing_record = cursor.fetchone()
+            if existing_record:
+                # Якщо запис існує, збільшуємо usage_count
+                new_usage_count = existing_record[0] + 1
+                cursor.execute(
+                    "UPDATE SessionGameModes SET usage_count = ? WHERE session_id = ? AND mode_id = ?",
+                    (new_usage_count, session_id, mode_id)
+                )
+            else:
+                # Якщо запису немає, створюємо новий із usage_count = 1
+                cursor.execute(
+                    "INSERT INTO SessionGameModes (session_id, mode_id, usage_count) VALUES (?, ?, ?)",
+                    (session_id, mode_id, 1)
+                )
+            print(f"Оновлено статистику режиму гри {self.card_name} для сесії {session_id}.")
+
+            # Оновлення таблиці SessionGestures
+            for gesture_name, stats in self.infoAboutGestures.items():
+                correct, total = stats  # correct_answers, total_answers
+
+                # Отримання gesture_id за gesture_name
+                cursor.execute("SELECT gesture_id FROM Gestures WHERE gesture_name = ?", (gesture_name,))
+                gesture = cursor.fetchone()
+                if not gesture:
+                    print(f"Жест {gesture_name} не знайдено в таблиці Gestures.")
+                    continue
+                gesture_id = gesture[0]
+
+                # Пошук статистики за gesture_id
+                cursor.execute(
+                    "SELECT correct_answers, total_answers FROM SessionGestures WHERE gesture_id = ?",
+                    (gesture_id,)
+                )
+                existing_gesture_record = cursor.fetchone()
+
+                if existing_gesture_record:
+                    # Якщо запис існує, додаємо нові значення і оновлюємо session_id
+                    new_correct = existing_gesture_record[0] + correct
+                    new_total = existing_gesture_record[1] + total
+                    cursor.execute(
+                        "UPDATE SessionGestures SET session_id = ?, correct_answers = ?, total_answers = ? WHERE gesture_id = ?",
+                        (session_id, new_correct, new_total, gesture_id)
+                    )
+                else:
+                    # Якщо запису немає, створюємо новий із поточним session_id
+                    cursor.execute(
+                        "INSERT INTO SessionGestures (session_id, gesture_id, correct_answers, total_answers) VALUES (?, ?, ?, ?)",
+                        (session_id, gesture_id, correct, total)
+                    )
+                print(f"Оновлено статистику жесту {gesture_name} для сесії {session_id}.")
+
+            # Збереження змін
+            self.connection.commit()
+
+        except Exception as e:
+            print(f"Помилка при оновленні статистики: {e}")
