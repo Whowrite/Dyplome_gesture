@@ -1,8 +1,7 @@
 from PyQt5.QtWidgets import QHBoxLayout, QLabel, QWidget, QPushButton, QFrame, QVBoxLayout, \
     QStyle, QMessageBox, QRadioButton, QButtonGroup, QDialog, QScrollArea, QComboBox
-from PyQt5.QtGui import QImage, QPixmap, QFont
-from PyQt5.QtGui import QImage, QPixmap, QMovie
-from PyQt5.QtCore import QTimer, Qt
+from PyQt5.QtGui import QImage, QPixmap, QMovie, QIcon, QTransform, QFont
+from PyQt5.QtCore import QTimer, Qt, QSize
 from functools import partial
 import os
 import time
@@ -62,6 +61,44 @@ class UserLevelsModule:
                     }}
                 """)
 
+        # ------------------------------------------------------------------------------------------------------------------Кнопка для повернення на головну сторінку
+
+        button_return = QPushButton(modal)
+        button_return.setGeometry(370, 23, 60, 60)
+
+        # Завантажуємо зображення в QPixmap
+        pixmap2 = QPixmap("FingerImages/right-arrow.png")  # Вкажіть шлях до вашого зображення
+
+        # Обертаємо зображення
+        transform = QTransform().rotate(180)
+        rotated_pixmap = pixmap2.transformed(transform)
+
+        # Завантажуємо іконку
+        icon = QIcon(rotated_pixmap)
+        button_return.setIcon(icon)
+        button_return.setIconSize(QSize(50, 50))  # Налаштовуємо розмір іконки (50x50 пікселів)
+        button_return.show()
+
+        font = QFont()
+        font.setBold(True)
+        font.setPointSize(18)
+        button_return.setFont(font)
+
+        button_return.setStyleSheet(f"""
+                                        QPushButton {{
+                                            background-color: {self.widgetsColor[0]}; /* Колір кнопки */
+                                            color: #eb8934; /* Колір тексту */
+                                            border-radius: 30px; /* Закруглення кутів */
+                                        }}
+                                        QPushButton:hover {{
+                                            background-color: #5dade2; /* Колір кнопки при наведенні */
+                                        }}
+                                        QPushButton:pressed {{
+                                            background-color: #1f618d; /* Колір кнопки при натисканні */
+                                        }}
+                                    """)
+        button_return.clicked.connect(modal.close)
+
         # ------------------------------------------------------------------------------------------------------------------Кнопка довідки
 
         button_help = QPushButton(modal)
@@ -119,7 +156,7 @@ class UserLevelsModule:
 
         # Додавання "карток" у контейнер
         for i in range(14):  # 14 карток
-            image_card = RebuildsComponents.ClickableLabel()
+            image_card = RebuildsComponents.ClickableLabel("", 0.9)
             image_card.setFixedSize(200, 200)
             pixmap = QPixmap(images_cards[i])
             image_card.setPixmap(pixmap)
@@ -164,8 +201,8 @@ class UserLevelsModule:
                                 }}
                             """)
         # Додавання "карток" у контейнер
-        self.add_CardsOfGestures(3)
-
+        tmpCard = self.add_CardsOfGestures(3)
+        self.order_gesture_click(tmpCard)
         # ------------------------------------------------------------------------------------------------------------------Фрейм для визначення кількості жестів
 
         frame_number_gestures = QFrame(modal)
@@ -390,8 +427,9 @@ class UserLevelsModule:
         for widget in self.frame_order_gesture.findChildren(QWidget):
             widget.deleteLater()
         N = 0
+        tmpCard = None
         for i in range(number):  # N карток
-            image_card = RebuildsComponents.ClickableLabel(self.frame_order_gesture)
+            image_card = RebuildsComponents.ClickableLabel("", 0.7, self.frame_order_gesture)
             if number == 3:
                 image_card.setGeometry(80 + N, 50, 200, 200)
                 N += 70 + 200
@@ -414,6 +452,9 @@ class UserLevelsModule:
             # Підключаємо сигнал кліку до обробника
             image_card.clicked.connect(partial(self.order_gesture_click, image_card))
             image_card.show()
+            if i == 0:
+                tmpCard = image_card
+        return tmpCard
 
     # Функція-обробник зміни кількості жестів рівня
     def number_gestures_changed(self, selected_value):
@@ -497,7 +538,7 @@ class UserLevelsModule:
             print(f"Помилка при збереженні файлу: {e}")
 
         modal.close()
-        self.__init__()
+        self.__init__(self.widgetsLanguage, self.widgetsColor)
 
     # Функція-обробник мітки для вибору жесту
     def on_gesture_click(self, image_path):
@@ -510,12 +551,20 @@ class UserLevelsModule:
                     label.setPixmap(pixmap)
                     label.setScaledContents(True)
                     N = int(label.objectName()[12])
-                    print(f"N = int(label.objectName()[12]) = {N}")
+                    # print(f"N = int(label.objectName()[12]) = {N}")
                     self.gestures[N] = image_path
+                    break
+            for i in range(self.gestures.__len__()):
+                if self.gestures[i] == "":
+                    for nextCard in self.frame_order_gesture.findChildren(QLabel):
+                        if nextCard.objectName() == f"order_label_{i}":
+                            self.order_gesture_click(nextCard)
+                            break
                     break
 
     # Функція-обробник мітки для редагування жесту з фрейму "порядок жестів"
     def order_gesture_click(self, image_card):
+        print(f"image_card: {image_card.objectName()}")
         if image_card.objectName() == self.selectPositionGesture:
             image_card.setStyleSheet(f"""
                                 QLabel {{

@@ -865,11 +865,28 @@ class MainWindow():
 
     # Функція-обробник кнопки для відображення інфо проходження рівня (див. show_levels_buttons() )
     def select_level_click(self, current_button_level, level_status, cardName):
-        # Блокування всіх інших кнопок
+        # Прибирання виділення всіх інших кнопок
         parent_frame = current_button_level.parent()  # Отримати батьківський фрейм
         for child in parent_frame.findChildren(QPushButton):
             if child != current_button_level and child.objectName() != "start_level_button":
-                child.setEnabled(False)  # Заблокувати інші кнопки
+                child.setStyleSheet(f"""
+                        QPushButton {{
+                            background-color: {self.widgetsColor[0]}; /* Фон кнопки */
+                            border-radius: 10px; /* Закруглені кути */
+                            border: 3px solid black;
+                            border-color: {self.widgetsColor[0]};
+                            font-size: 40px;
+                            font-weight: bold;
+                            padding-top: 20px;
+                        }}
+                        QPushButton:hover {{
+                            border-color: #5dade2; /* Колір кнопки при наведенні */
+                        }}
+                        QPushButton:pressed {{
+                            border-color: #1f618d; /* Колір кнопки при натисканні */
+                        }}
+                    """)
+                child.setChecked(False)
 
         if current_button_level.isChecked():
             print("select_level_click(): " + current_button_level.objectName())
@@ -924,10 +941,6 @@ class MainWindow():
                             border-color: #1f618d; /* Колір кнопки при натисканні */
                         }}
                     """)
-
-            # Розблокування інших кнопок, якщо поточна кнопка відключається
-            for child in parent_frame.findChildren(QPushButton):
-                child.setEnabled(True)
             self.current_game_level = "Undefined"
 
     # Функція-обробник кнопки для відображення компонентів фрейму "Користувацький рівень"
@@ -1021,12 +1034,16 @@ class MainWindow():
 
         # ------------------------------------------------------------------------------------------------------------------Фрейм для відображення фреймів
 
-        scenario = QFrame(self.select_Level)
+        scenario = QLabel(self.select_Level)
         scenario.setGeometry(490, 100, 770, 750)
+        pixmap2 = QPixmap("FingerImages/foreground-image.jpg")
+        scenario.setPixmap(pixmap2)
+        scenario.setScaledContents(True)
         scenario.show()
+        # background-color: {self.widgetsColor[1]}; /* Фон картки */
         scenario.setStyleSheet(f"""
                             QFrame {{
-                                background-color: {self.widgetsColor[1]}; /* Фон картки */
+                                
                                 border-radius: 10px; /* Закруглені кути */
                             }}
                         """)
@@ -1034,32 +1051,42 @@ class MainWindow():
         # ------------------------------------------------------------------------------------------------------------------Фрейм розпочати користувацький рівень
 
         userLevel = UserLevelsModule.UserLevelsModule(self.widgetsLanguage, self.widgetsColor)
-        startUserLevel_frame = RebuildsComponents.ClickableFrame(scenario)
+        startUserLevel_frame = RebuildsComponents.ClickableLabel("", 0.4, scenario)
         startUserLevel_frame.setGeometry(20, 20, 355, 710)
+
+        pixmap2 = QPixmap("FingerImages/play-level.png")
+        startUserLevel_frame.setPixmap(pixmap2)
+        startUserLevel_frame.setScaledContents(True)
         startUserLevel_frame.show()
-        startUserLevel_frame.setStyleSheet("""
-                                QFrame {
-                                    background-color: red; /* Фон картки */
+        startUserLevel_frame.setStyleSheet(f"""
+                                QLabel {{
+                                    background-color: {self.widgetsColor[0]}; /* Фон картки */
                                     border-radius: 10px; /* Закруглені кути */
-                                }
+                                }}
                             """)
-        opacity_effect = QGraphicsOpacityEffect()
-        opacity_effect.setOpacity(0.4)
-        startUserLevel_frame.setGraphicsEffect(opacity_effect)
+        # opacity_effect = QGraphicsOpacityEffect()
+        # opacity_effect.setOpacity(0.4)
+        # startUserLevel_frame.setGraphicsEffect(opacity_effect)
         startUserLevel_frame.clicked.connect(lambda: userLevel.openUserLevelPanel(level_cv_frame))
 
         # ------------------------------------------------------------------------------------------------------------------Фрейм створення користувацього рівня
 
-        createUserLevel_frame = RebuildsComponents.ClickableFrame(scenario)
+        createUserLevel_frame = RebuildsComponents.ClickableLabel("",0.4, scenario)
         createUserLevel_frame.setGeometry(395, 20, 355, 710)
+
+        pixmap3 = QPixmap("FingerImages/create-level.png")
+        createUserLevel_frame.setPixmap(pixmap3)
+        createUserLevel_frame.setScaledContents(True)
         createUserLevel_frame.show()
-        createUserLevel_frame.setStyleSheet("""
-                                QFrame {
-                                    background-color: blue; /* Фон картки */
+        createUserLevel_frame.setStyleSheet(f"""
+                                QLabel {{
+                                    background-color: {self.widgetsColor[1]}; /* Фон картки */
                                     border-radius: 10px; /* Закруглені кути */
-                                }
+                                }}
                             """)
-        createUserLevel_frame.setGraphicsEffect(opacity_effect)
+        # opacity_effect2 = QGraphicsOpacityEffect()
+        # opacity_effect2.setOpacity(0.4)
+        # createUserLevel_frame.setGraphicsEffect(opacity_effect2)
         createUserLevel_frame.clicked.connect(lambda: userLevel.createUserLevel())
 
         level_cv_frame.raise_()

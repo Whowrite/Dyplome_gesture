@@ -1,6 +1,5 @@
-from PyQt5.QtWidgets import QFrame, QDialog, QLabel, QMainWindow
-from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtWidgets import QFrame, QDialog, QLabel, QMainWindow, QGraphicsOpacityEffect
+from PyQt5.QtCore import pyqtSignal, Qt, QTimer
 from datetime import datetime
 import sqlite3
 
@@ -14,9 +13,26 @@ class ClickableFrame(QFrame):
 class ClickableLabel(QLabel):
     clicked = pyqtSignal()  # створюємо власний сигнал
 
+    def __init__(self, text, opacityON = 1.0, parent=None):
+        super().__init__(text, parent)
+        self.opacityON = opacityON
+        self.setMouseTracking(True)  # Увімкнення відстеження миші
+        self.opacity_effect = QGraphicsOpacityEffect(self)
+        self.opacity_effect.setOpacity(self.opacityON)  # Початкова прозорість
+        self.setGraphicsEffect(self.opacity_effect)
+
+    def enterEvent(self, event):
+        """Змінюємо прозорість при наведенні."""
+        self.opacity_effect.setOpacity(1.0)  # Повна непрозорість
+
+    def leaveEvent(self, event):
+        """Повертаємо початкову прозорість."""
+        self.opacity_effect.setOpacity(self.opacityON)  # Початкова прозорість
+
     def mousePressEvent(self, event):
+        """Емітуємо сигнал при кліку."""
         if event.button() == Qt.LeftButton:
-            self.clicked.emit()  # емітуємо сигнал при кліку
+            self.clicked.emit()
 
 class ModalWindow(QDialog):
     def __init__(self, x, y, lenght, height, parent=None):

@@ -5,7 +5,6 @@ import CollectionLevels as Cl
 from PyQt5.QtWidgets import QApplication, QLabel, QWidget, QPushButton, QFrame, QHBoxLayout, \
     QStyle, QMessageBox
 from PyQt5.QtGui import QImage, QPixmap, QFont
-from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtCore import QTimer, Qt
 
 class CreateLevel:
