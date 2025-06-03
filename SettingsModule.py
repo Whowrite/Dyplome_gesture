@@ -838,6 +838,14 @@ class SettingsModule:
 
     # Функція для повернення значення улюбленого режиму гри користувача
     def get_userLikeMode(self):
+        """
+        Повертає код улюбленого режиму гри користувача на основі максимального usage_count
+        у таблиці SessionGameModes. Використовує словник userModes для конвертації mode_name
+        у відповідний код.
+
+        Returns:
+            int: Код режиму гри (0, 1 або 2) або 0 у разі помилки чи відсутності даних.
+        """
         userModes = {
             "Gestures with one hand": 0,
             "Gestures with two hand": 1,
@@ -852,18 +860,18 @@ class SettingsModule:
             # Створення курсора
             cursor = self.connection.cursor()
 
-            # Запит для знаходження mode_id із максимальним usage_count
+            # Запит для знаходження mode_name з максимальним usage_count
             cursor.execute("""
-                    SELECT gm.mode_name
-                    FROM SessionGameModes sgm
-                    JOIN GameModes gm ON sgm.mode_id = gm.mode_id
-                    WHERE sgm.usage_count = (
-                        SELECT MAX(usage_count)
-                        FROM SessionGameModes
-                    )
-                    ORDER BY gm.mode_name ASC
-                    LIMIT 1
-                """)
+                SELECT gm.mode_name
+                FROM SessionGameModes sgm
+                JOIN GameModes gm ON sgm.mode_id = gm.mode_id
+                WHERE sgm.usage_count = (
+                    SELECT MAX(usage_count)
+                    FROM SessionGameModes
+                )
+                ORDER BY gm.mode_name ASC
+                LIMIT 1
+            """)
 
             # Отримання результату
             result = cursor.fetchone()
@@ -890,8 +898,9 @@ class SettingsModule:
     def get_NumberSessionInARow(self):
         """
         Обчислює кількість послідовних днів із сесіями користувача.
-        Виконує запит до таблиці Sessions, використовуючи self.connection.
-        Повертає кількість послідовних днів як рядкове значення.
+        Виконує запит до таблиці Sessions, використовуючи self.connection, для отримання
+        унікальних дат сесій. Враховує можливість кількох сесій в один день, використовуючи
+        DISTINCT. Повертає кількість послідовних днів як рядкове значення.
         Якщо сесій немає, повертає "0".
 
         Returns:
@@ -924,34 +933,22 @@ class SettingsModule:
             # Конвертація дат у об'єкти datetime
             date_objects = [datetime.strptime(date[0], '%Y-%m-%d') for date in dates]
 
-            # Поточна дата
+            # Поточна дата (без часу)
             today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
 
             # Ініціалізація лічильника послідовних днів
             consecutive_days = 1
-
-            # Якщо остання дата не сьогодні, перевіряємо від неї
             last_date = date_objects[0]
-            if last_date.date() < today.date():
-                # Починаємо з останньої наявної дати
-                for i in range(1, len(date_objects)):
-                    current_date = date_objects[i]
-                    # Перевіряємо, чи різниця між датами 1 день
-                    if (last_date - current_date).days == 1:
-                        consecutive_days += 1
-                        last_date = current_date
-                    else:
-                        break
-            else:
-                # Починаємо з сьогодні, якщо є сесія
-                for i in range(1, len(date_objects)):
-                    current_date = date_objects[i]
-                    # Перевіряємо, чи різниця між датами 1 день
-                    if (last_date - current_date).days == 1:
-                        consecutive_days += 1
-                        last_date = current_date
-                    else:
-                        break
+
+            # Перевірка послідовності дат
+            for i in range(1, len(date_objects)):
+                current_date = date_objects[i]
+                # Перевіряємо, чи різниця між датами становить 1 день
+                if (last_date - current_date).days == 1:
+                    consecutive_days += 1
+                    last_date = current_date
+                else:
+                    break
 
             # Повернення результату як рядок
             return str(consecutive_days)
@@ -962,6 +959,16 @@ class SettingsModule:
 
     # Функція для повернення значення середньої часу сесій користувача за місяць
     def get_AverageTimeSession(self):
+        """
+        Обчислює середню тривалість сесій за поточний місяць у хвилинах.
+        Виконує запит до таблиці Sessions, використовуючи self.connection, для отримання
+        середнього значення session_length за всі сесії в поточному місяці.
+        Враховує можливість кількох сесій в один день. Повертає результат як рядок
+        (округлене значення в хвилинах). Якщо сесій немає, повертає "0".
+
+        Returns:
+            str: Середня тривалість сесій у хвилинах (округлено до цілого) або "0" у разі помилки.
+        """
         try:
             # Перевірка з'єднання
             if self.connection is None:
@@ -977,10 +984,10 @@ class SettingsModule:
 
             # Запит для обчислення середнього session_length за місяць
             cursor.execute("""
-                    SELECT AVG(session_length)
-                    FROM Sessions
-                    WHERE strftime('%Y-%m', login_date) = ?
-                """, (year_month,))
+                SELECT AVG(session_length)
+                FROM Sessions
+                WHERE strftime('%Y-%m', login_date) = ?
+            """, (year_month,))
 
             # Отримання результату
             result = cursor.fetchone()[0]

@@ -26,6 +26,12 @@ class UserLevelsModule:
             "save_level_button": ['Зберегти рівень', 'Save level'],
             "button_help": ["Допоміжний текст 5!!!", "Help text 5!!!"]
         }
+        self.connection = None
+
+    # Встановлення підключення до бд
+    def set_connect_ToBD(self, con):
+        self.connection = con
+        print("Підлючення встановлено: LelelCounting")
 
     # Функція-обробник для створення користувацького рівня
     def createUserLevel(self):
@@ -664,41 +670,52 @@ class UserLevelsModule:
         folderPath = "UserLevels/"
         myList = os.listdir(folderPath)
         print(f"def openUserLevelPanel:\n {myList}")
+        # Створення відображення між зручними назвами та реальними іменами файлів
+        display_names = [f"Рівень {i + 1}" for i in range(len(myList))]
+        file_mapping = dict(zip(display_names, myList))  # Відображення: "Рівень X" -> ім'я файлу
+
         # Додавання випадаючого списку
         combo_UserLevel = QComboBox(frame_checkUserLevel)
         combo_UserLevel.show()
         combo_UserLevel.setGeometry(60, 250, 380, 40)
-        combo_UserLevel.addItems(myList)
+        combo_UserLevel.addItems(display_names)
         combo_UserLevel.setCurrentIndex(-1)  # Знімаємо вибір, щоб не було автоматично вибраного елемента
         combo_UserLevel.setStyleSheet(f"""
-                    QComboBox {{
-                        background-color: {self.widgetsColor[0]};
-                        border: 1px solid {self.widgetsColor[1]};
-                        border-radius: 5px;
-                        padding: 5px;
-                        font-size: 20px;
-                    }}
-                    QComboBox::drop-down {{
-                        border: none;
-                    }}
-                    QComboBox::down-arrow {{
-                        image: url(FingerImages/down_arrow.png); /* Вкажіть шлях до іконки, якщо потрібно */
-                        width: 25px;
-                        height: 25px;
-                        margin-right: 10px; /* Зміщення стрілки лівіше */
-                        subcontrol-origin: padding;
-                        subcontrol-position: center right; /* Позиціонування стрілки */
-                    }}
-                    QComboBox QAbstractItemView {{
-                        background-color: {self.widgetsColor[1]}; /* Фон випадаючого меню */
-                        selection-background-color: #1d70f5; /* Фон виділеного елемента */
-                        selection-color: white; /* Колір тексту виділеного елемента */
-                        border: 1px solid {self.widgetsColor[1]}; /* Межа випадаючого меню */
-                    }}
-                """)
+                            QComboBox {{
+                                background-color: {self.widgetsColor[0]};
+                                border: 1px solid {self.widgetsColor[1]};
+                                border-radius: 5px;
+                                padding: 5px;
+                                font-size: 20px;
+                            }}
+                            QComboBox::drop-down {{
+                                border: none;
+                            }}
+                            QComboBox::down-arrow {{
+                                image: url(FingerImages/down_arrow.png); /* Вкажіть шлях до іконки, якщо потрібно */
+                                width: 25px;
+                                height: 25px;
+                                margin-right: 10px; /* Зміщення стрілки лівіше */
+                                subcontrol-origin: padding;
+                                subcontrol-position: center right; /* Позиціонування стрілки */
+                            }}
+                            QComboBox QAbstractItemView {{
+                                background-color: {self.widgetsColor[1]}; /* Фон випадаючого меню */
+                                selection-background-color: #1d70f5; /* Фон виділеного елемента */
+                                selection-color: white; /* Колір тексту виділеного елемента */
+                                border: 1px solid {self.widgetsColor[1]}; /* Межа випадаючого меню */
+                            }}
+                        """)
 
-        combo_UserLevel.currentIndexChanged.connect(lambda: self.startUserLevel(level_cv_frame, folderPath + combo_UserLevel.currentText()))
+        # Підключення сигналу з використанням реального імені файлу
+        def on_combobox_changed():
+            selected_display_name = combo_UserLevel.currentText()
+            if selected_display_name:
+                selected_file = file_mapping.get(selected_display_name, "")
+                if selected_file:
+                    self.startUserLevel(level_cv_frame, folderPath + selected_file)
 
+        combo_UserLevel.currentIndexChanged.connect(on_combobox_changed)
 
         # -------------------------------------------------------------------------------------------------------------Кнопка для повернення на сторінку Користувацький рівень
         button_return = QPushButton(level_cv_frame)
@@ -723,8 +740,6 @@ class UserLevelsModule:
                                     """)
         button_return.clicked.connect(lambda: self.closeUserLevel(level_cv_frame))
 
-        # Вікно для запуску користувацького рівня
-
     # Функція-обробник зчитування даних з вибраного файлу та запуску рівня
     def startUserLevel(self, level_cv_frame, filename):
         print("UserLevelsModule: def startUserLevel()")
@@ -737,5 +752,6 @@ class UserLevelsModule:
         levelCounting = LelelCounting.CreateLevel(numberGestures, time, UserGestures)
         levelCounting.setLanguage(self.widgetsLanguage)
         levelCounting.setColor(self.widgetsColor)
+        levelCounting.set_connect_ToBD(self.connection)
 
-        levelCounting.create_new_level_click("Користувацький рівень", "Користувацький рівень", level_cv_frame)
+        levelCounting.create_new_level_click("Користувацький рівень", "User level", level_cv_frame)

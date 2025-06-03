@@ -161,9 +161,19 @@ class CreateLevel:
         # Додамо QLabel для відображення відео
         camera_label = QLabel(level_cv_frame)
         camera_label.setGeometry(250, 120, 820, 650)
-        camera_label.setStyleSheet(f"background-color: {self.widgetsColor[0]};")
+        # camera_label.setStyleSheet(f"background-color: {self.widgetsColor[0]};")
         camera_label.setAlignment(Qt.AlignCenter)
         camera_label.show()
+
+        gesture_label = QLabel(level_cv_frame)
+        gesture_label.setGeometry(250, 140, 200, 200)
+        gesture_label.setStyleSheet("""
+                                    QLabel {
+                                        background-color: none; /* Колір фону */
+                                        border: 1px solid black;
+                                    }
+                                """)
+        gesture_label.show()
 
         # Ініціалізація камери та QTimer
         cap = cv2.VideoCapture(0)  # Використовуємо першу камеру (0)
@@ -201,10 +211,13 @@ class CreateLevel:
                         self.countpoints = 2
                     detector.setGesture(self.levelGestures[self.current_level][1],
                                         self.levelGestures[self.current_level][0])
-                    gesture_img = self.levelGestures[self.current_level][2]
+                    gesture_img = self.levelGestures[self.current_level][3]
+                    # if gesture_img is not None:
+                    #     h, w, c = gesture_img.shape  # Отримуємо розміри
+                    #     frame[0:h, 0:w] = gesture_img  # Вставляємо зображення
                     if gesture_img is not None:
-                        h, w, c = gesture_img.shape  # Отримуємо розміри
-                        frame[0:h, 0:w] = gesture_img  # Вставляємо зображення
+                        pixmap = QPixmap(gesture_img)
+                        gesture_label.setPixmap(pixmap)
 
                     if len(lmList) == self.countpoints:
                         # Список точок, які потрібно знайти (IDs)
@@ -579,22 +592,21 @@ class CreateLevel:
         """
         try:
             # Оновлення LevelStatistics
-            resultOfLevel = self.numberTasks - self.errorAnswers
-            if self.LevelStatistics[self.card_name][self.current_game_level][0] < resultOfLevel:
-                self.LevelStatistics[self.card_name][self.current_game_level][0] = resultOfLevel
-            self.LevelStatistics[self.card_name][self.current_game_level][1] += 1
-
+            if self.card_name != "User level" and self.card_name != "Користувацький рівень":
+                resultOfLevel = self.numberTasks - self.errorAnswers
+                if self.LevelStatistics[self.card_name][self.current_game_level][0] < resultOfLevel:
+                    self.LevelStatistics[self.card_name][self.current_game_level][0] = resultOfLevel
+                self.LevelStatistics[self.card_name][self.current_game_level][1] += 1
             # Переклад назви режиму гри
             cards_names = {
-                "Жести однією рукою": "Gestures with one hand",
-                "Жести двома руками": "Gestures with two hand",
-                "Користувацький рівень": "User level"
+                    "Жести однією рукою": "Gestures with one hand",
+                    "Жести двума руками": "Gestures with two hand",
+                    "Користувацький рівень": "User level"
             }
             if self.card_name in cards_names:
                 self.card_name = cards_names[self.card_name]
             print(f"Назва режиму гри: {self.card_name}")
             print(f"Статистика пройденого рівня: \n{self.infoAboutGestures}")
-
             # Перевірка з'єднання
             if self.connection is None:
                 print("Помилка: з'єднання з базою даних не встановлено.")
@@ -605,13 +617,14 @@ class CreateLevel:
 
             # Отримання поточної дати та пошук/створення поточної сесії
             current_date = datetime.now().strftime('%Y-%m-%d')
-            cursor.execute("SELECT session_id FROM Sessions WHERE login_date = ?", (current_date,))
+            cursor.execute("SELECT session_id FROM Sessions WHERE login_date = ? ORDER BY session_id DESC LIMIT 1", (current_date,))
             session = cursor.fetchone()
             if not session:
                 cursor.execute("INSERT INTO Sessions (login_date, session_length) VALUES (?, ?)", (current_date, 0))
                 cursor.execute("SELECT session_id FROM Sessions WHERE login_date = ?", (current_date,))
                 session = cursor.fetchone()
             session_id = session[0]
+            print(f"session_id: {session_id}")
 
             # Оновлення таблиці SessionGameModes
             cursor.execute("SELECT mode_id FROM GameModes WHERE mode_name = ?", (self.card_name,))
@@ -621,24 +634,24 @@ class CreateLevel:
                 return
             mode_id = mode[0]
 
-            # Перевірка, чи існує запис для поточної сесії та режиму гри
+            # Перевірка, чи існує запис для mode_id
             cursor.execute(
-                "SELECT usage_count FROM SessionGameModes WHERE session_id = ? AND mode_id = ?",
-                (session_id, mode_id)
+                "SELECT usage_count, session_id FROM SessionGameModes WHERE mode_id = ?",
+                (mode_id,)
             )
             existing_record = cursor.fetchone()
             if existing_record:
-                # Якщо запис існує, збільшуємо usage_count
+                # Якщо запис існує, оновлюємо session_id та збільшуємо usage_count
                 new_usage_count = existing_record[0] + 1
                 cursor.execute(
-                    "UPDATE SessionGameModes SET usage_count = ? WHERE session_id = ? AND mode_id = ?",
-                    (new_usage_count, session_id, mode_id)
+                    "UPDATE SessionGameModes SET session_id = ?, usage_count = ? WHERE mode_id = ?",
+                    (session_id, new_usage_count, mode_id)
                 )
             else:
-                # Якщо запису немає, створюємо новий із usage_count = 1
+                # Якщо запису немає, створюємо новий із session_id та usage_count = 1
                 cursor.execute(
-                    "INSERT INTO SessionGameModes (session_id, mode_id, usage_count) VALUES (?, ?, ?)",
-                    (session_id, mode_id, 1)
+                    "INSERT INTO SessionGameModes (mode_id, session_id, usage_count) VALUES (?, ?, ?)",
+                    (mode_id, session_id, 1)
                 )
             print(f"Оновлено статистику режиму гри {self.card_name} для сесії {session_id}.")
 

@@ -131,6 +131,11 @@ class MainWindow(QMainWindow):
         self.session_time += 1
 
     def saveSessionTime(self):
+        """
+        Зберігає тривалість сесії, додаючи її до останнього запису сесії за поточною датою.
+        Шукає останню сесію за максимальним session_id для поточної дати і додає
+        self.session_time до session_length без перевірки, чи нове значення більше.
+        """
         try:
             # Зупинка таймера
             self.session_timer.stop()
@@ -142,14 +147,22 @@ class MainWindow(QMainWindow):
             session_str = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
             print(f"Ваша сесія тривала: {session_str}")
 
+            # Перевірка з'єднання
+            if self.connection is None:
+                print("Помилка: з'єднання з базою даних не встановлено.")
+                return
+
             # Створення курсора
             cursor = self.connection.cursor()
 
             # Отримання поточної дати у форматі 'YYYY-MM-DD'
             current_date = datetime.now().strftime('%Y-%m-%d')
 
-            # Пошук сесії за поточною датою
-            cursor.execute("SELECT session_id, session_length FROM Sessions WHERE login_date = ?", (current_date,))
+            # Пошук останньої сесії за поточною датою (максимальний session_id)
+            cursor.execute(
+                "SELECT session_id, session_length FROM Sessions WHERE login_date = ? ORDER BY session_id DESC LIMIT 1",
+                (current_date,)
+            )
             session = cursor.fetchone()
 
             if not session:
@@ -158,27 +171,16 @@ class MainWindow(QMainWindow):
 
             session_id, current_session_length = session
 
-            # Перевірка тривалості сесії
-            if current_session_length == 0:
-                # Якщо тривалість 0, оновлюємо до нового значення
-                cursor.execute(
-                    "UPDATE Sessions SET session_length = ? WHERE session_id = ?",
-                    (self.session_time, session_id)
-                )
-                self.connection.commit()
-                print(f"Тривалість сесії за {current_date} оновлено до {self.session_time} секунд.")
-            elif self.session_time > current_session_length:
-                # Якщо нове значення більше за поточне, оновлюємо
-                cursor.execute(
-                    "UPDATE Sessions SET session_length = ? WHERE session_id = ?",
-                    (self.session_time, session_id)
-                )
-                self.connection.commit()
-                print(f"Тривалість сесії за {current_date} оновлено до {self.session_time} секунд.")
-            else:
-                # Якщо нове значення не більше за поточне, залишаємо як є
-                print(
-                    f"Тривалість сесії за {current_date} ({current_session_length} секунд) не змінено, оскільки нове значення ({self.session_time} секунд) не більше.")
+            # Додавання нової тривалості до поточної
+            new_session_length = current_session_length + self.session_time
+
+            # Оновлення тривалості сесії
+            cursor.execute(
+                "UPDATE Sessions SET session_length = ? WHERE session_id = ?",
+                (new_session_length, session_id)
+            )
+            self.connection.commit()
+            print(f"Тривалість сесії за {current_date} оновлено до {new_session_length} секунд.")
 
         except Exception as e:
             print(f"Помилка при збереженні тривалості сесії: {e}")

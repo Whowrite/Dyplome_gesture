@@ -177,7 +177,6 @@ class MainWindow():
                     self.connect_toBD('database\\statistics.db')
                     self.levelCounting.set_connect_ToBD(self.connection)
                     self.settingsModule.set_connect_ToBD(self.connection)
-                    self.settingsModule.set_connect_ToBD(self.connection)
                     self.window.set_connect_ToBD(self.connection)
                     self.print_all_tables()
                 elif current_value == 80:
@@ -1051,6 +1050,7 @@ class MainWindow():
         # ------------------------------------------------------------------------------------------------------------------Фрейм розпочати користувацький рівень
 
         userLevel = UserLevelsModule.UserLevelsModule(self.widgetsLanguage, self.widgetsColor)
+        userLevel.set_connect_ToBD(self.connection)
         startUserLevel_frame = RebuildsComponents.ClickableLabel("", 0.4, scenario)
         startUserLevel_frame.setGeometry(20, 20, 355, 710)
 
@@ -1164,19 +1164,17 @@ class MainWindow():
         """
         Встановлює з'єднання з базою даних SQLite, створює таблиці, якщо вони не існують,
         і додає початкові записи до таблиць GameModes, Gestures, Sessions, SessionGameModes
-        і SessionGestures, перевіряючи, чи записи ще не існують. Початкові записи для
-        SessionGameModes додаються для першої сесії, а для SessionGestures — лише для gesture_id.
+        і SessionGestures, перевіряючи, чи записи ще не існують.
 
         Args:
             db_file (str): Шлях до файлу бази даних SQLite.
         """
         print("Перевірка з'єднання з бд")
         try:
-            # Підключення до бази даних (створюється, якщо не існує)
+            # Підключення до бази даних
             self.connection = sqlite3.connect(db_file)
             print(f"Успішно підключено до бази даних: {db_file}")
 
-            # Створення курсора
             cursor = self.connection.cursor()
 
             # Створення таблиці Sessions
@@ -1196,13 +1194,12 @@ class MainWindow():
                 )
             ''')
 
-            # Створення таблиці SessionGameModes
+            # Оновлена таблиця SessionGameModes
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS SessionGameModes (
+                    mode_id INTEGER PRIMARY KEY,
                     session_id INTEGER NOT NULL,
-                    mode_id INTEGER NOT NULL,
                     usage_count INTEGER NOT NULL,
-                    PRIMARY KEY (session_id, mode_id),
                     FOREIGN KEY (session_id) REFERENCES Sessions(session_id) ON DELETE CASCADE,
                     FOREIGN KEY (mode_id) REFERENCES GameModes(mode_id) ON DELETE CASCADE
                 )
@@ -1216,7 +1213,7 @@ class MainWindow():
                 )
             ''')
 
-            # Створення таблиці SessionGestures (оновлена структура)
+            # Створення таблиці SessionGestures
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS SessionGestures (
                     session_id INTEGER NOT NULL,
@@ -1249,7 +1246,7 @@ class MainWindow():
                     SELECT ? WHERE NOT EXISTS (SELECT 1 FROM Gestures WHERE gesture_name = ?)
                 ''', (gesture_name, gesture_name))
 
-            # Створення першої сесії, якщо вона ще не існує
+            # Створення першої сесії
             current_date = datetime.now().strftime('%Y-%m-%d')
             cursor.execute("SELECT session_id FROM Sessions WHERE login_date = ?", (current_date,))
             session = cursor.fetchone()
@@ -1264,21 +1261,23 @@ class MainWindow():
             session_game_modes_count = cursor.fetchone()[0]
             if session_game_modes_count == 0:
                 # Додавання початкових записів до таблиці SessionGameModes
-                for mode_id in range(1, 4):  # mode_id від 1 до 3
+                cursor.execute("SELECT mode_id FROM GameModes")
+                mode_ids = cursor.fetchall()
+                for mode_id in mode_ids:
                     cursor.execute('''
                         INSERT INTO SessionGameModes (session_id, mode_id, usage_count)
                         SELECT ?, ?, 0
                         WHERE NOT EXISTS (
                             SELECT 1 FROM SessionGameModes WHERE session_id = ? AND mode_id = ?
                         )
-                    ''', (session_id, mode_id, session_id, mode_id))
+                    ''', (session_id, mode_id[0], session_id, mode_id[0]))
 
             # Перевірка, чи таблиця SessionGestures порожня
             cursor.execute("SELECT COUNT(*) FROM SessionGestures")
             session_gestures_count = cursor.fetchone()[0]
             if session_gestures_count == 0:
                 # Додавання початкових записів до таблиці SessionGestures
-                for gesture_id in range(1, 15):  # gesture_id від 1 до 14
+                for gesture_id in range(1, 15):
                     cursor.execute('''
                         INSERT INTO SessionGestures (session_id, gesture_id, correct_answers, total_answers)
                         SELECT ?, ?, 0, 0
@@ -1349,15 +1348,6 @@ class MainWindow():
 
             # Отримання поточної дати у форматі 'YYYY-MM-DD'
             current_date = datetime.now().strftime('%Y-%m-%d')
-
-            # Запит для перевірки наявності сесії в поточний день
-            cursor.execute("SELECT session_id FROM Sessions WHERE login_date = ?", (current_date,))
-            existing_session = cursor.fetchone()
-
-            if existing_session:
-                # Якщо сесія вже існує, відхиляємо запит
-                print(f"Сесія за {current_date} вже існує. Запит відхилено.")
-                return
 
             # Якщо сесії немає, додаємо нову з session_length=0
             cursor.execute(
