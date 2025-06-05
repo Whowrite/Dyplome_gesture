@@ -82,7 +82,7 @@ class CreateLevel:
         # print(f"setDefaultParameters:")
 
     # Функція-обробник кнопки для створення рівня
-    def create_new_level_click(self, current_game_level, card_name, level_cv_frame):
+    def create_new_level_click(self, current_game_level, card_name, level_cv_frame, NumberOfCamera):
         if card_name in self.cards_names:
             self.card_name = self.cards_names[card_name]
         else:
@@ -176,7 +176,7 @@ class CreateLevel:
         gesture_label.show()
 
         # Ініціалізація камери та QTimer
-        cap = cv2.VideoCapture(0)  # Використовуємо першу камеру (0)
+        cap = cv2.VideoCapture(NumberOfCamera)  # Використовуємо першу камеру (0)
 
         if not cap.isOpened():
             print("Error: Camera not found!")
@@ -203,15 +203,15 @@ class CreateLevel:
                 frame = detector.findHands(img, Draw=False)
                 lmList = []
                 if self.current_level != self.numberTasks:
-                    if self.levelGestures[self.current_level][3] in Cl.oneHandGestures_list:
+                    if self.levelGestures[self.current_level][2] in Cl.oneHandGestures_list:
                         lmList = detector.findPosition(frame, Draw=False)
                         self.countpoints = 21
-                    elif self.levelGestures[self.current_level][3] in Cl.twoHandGestures_list:
+                    elif self.levelGestures[self.current_level][2] in Cl.twoHandGestures_list:
                         lmList = detector.findPositionsBothHands(frame, Draw=False)
                         self.countpoints = 2
                     detector.setGesture(self.levelGestures[self.current_level][1],
                                         self.levelGestures[self.current_level][0])
-                    gesture_img = self.levelGestures[self.current_level][3]
+                    gesture_img = self.levelGestures[self.current_level][2]
                     # if gesture_img is not None:
                     #     h, w, c = gesture_img.shape  # Отримуємо розміри
                     #     frame[0:h, 0:w] = gesture_img  # Вставляємо зображення
@@ -224,9 +224,9 @@ class CreateLevel:
                         targetPoints = [4, 8, 12, 16, 20]
                         # Знаходимо потрібні точки
                         tempArray = []
-                        if self.levelGestures[self.current_level][3] in Cl.oneHandGestures_list:
+                        if self.levelGestures[self.current_level][2] in Cl.oneHandGestures_list:
                             tempArray = detector.extractPoints(lmList, targetPoints)
-                        elif self.levelGestures[self.current_level][3] in Cl.twoHandGestures_list:
+                        elif self.levelGestures[self.current_level][2] in Cl.twoHandGestures_list:
                             tempArray = detector.extractPointsBothHands(lmList, targetPoints)
 
                         # print(tempArray)
@@ -575,9 +575,9 @@ class CreateLevel:
         """
         Формат: { "назва жесту": [правильна відповідь, кількість використань] }
         """
-        gesture_name = self.levelGestures[self.current_level][3]  # Отримуємо назву жесту
+        gesture_name = self.levelGestures[self.current_level][2]  # Отримуємо назву жесту
         gesture_name = gesture_name.split('/')[-1] # Отримуємо ім'я файлу
-        gesture_name = gesture_name.replace('.jpg', '')  # Прибираємо .jpg
+        gesture_name = gesture_name.replace('.png', '')  # Прибираємо .png
         self.infoAboutGestures[gesture_name] = [answerResult, 1]
 
     # Функція для оновлення статистики про використані жести в бд та level_statistics.json

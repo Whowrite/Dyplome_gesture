@@ -154,11 +154,11 @@ class UserLevelsModule:
         layout.setContentsMargins(10, 10, 10, 10)  # Відступи між елементами
         layout.setSpacing(30)  # Проміжки між картками
 
-        images_cards = ["FingerImages/gesture_wait.jpg", "FingerImages/gesture_peace.jpg", "FingerImages/gesture_oke.jpg",
-                        "FingerImages/gesture_little_bit.jpg", "FingerImages/gesture_jumbo.jpg", "FingerImages/gesture_fingers_crossed.jpg",
-                        "FingerImages/gesture_butt.jpg", "FingerImages/both_gesture_uwu.jpg", "FingerImages/both_gesture_tutupapa.jpg",
-                        "FingerImages/both_gesture_school.jpg", "FingerImages/both_gesture_request.jpg", "FingerImages/both_gesture_heart.jpg",
-                        "FingerImages/both_gesture_doubleoke.jpg", "FingerImages/both_gesture_camera.jpg"]
+        images_cards = ["FingerImages/gesture_wait.png", "FingerImages/gesture_peace.png", "FingerImages/gesture_oke.png",
+                        "FingerImages/gesture_little_bit.png", "FingerImages/gesture_jumbo.png", "FingerImages/gesture_fingers_crossed.png",
+                        "FingerImages/gesture_butt.png", "FingerImages/both_gesture_uwu.png", "FingerImages/both_gesture_tutupapa.png",
+                        "FingerImages/both_gesture_school.png", "FingerImages/both_gesture_request.png", "FingerImages/both_gesture_heart.png",
+                        "FingerImages/both_gesture_doubleoke.png", "FingerImages/both_gesture_camera.png"]
 
         # Додавання "карток" у контейнер
         for i in range(14):  # 14 карток
@@ -630,7 +630,7 @@ class UserLevelsModule:
         return numberGestures, time, gestures
 
     # Функція-обробник вибору користувацького рівня з директорії UserLevels/...
-    def openUserLevelPanel(self, level_cv_frame):
+    def openUserLevelPanel(self, level_cv_frame, NumberOfCamera):
         for widget in level_cv_frame.findChildren(QWidget):
             widget.deleteLater()
         level_cv_frame.show()
@@ -713,7 +713,7 @@ class UserLevelsModule:
             if selected_display_name:
                 selected_file = file_mapping.get(selected_display_name, "")
                 if selected_file:
-                    self.startUserLevel(level_cv_frame, folderPath + selected_file)
+                    self.startUserLevel(level_cv_frame, folderPath + selected_file, NumberOfCamera)
 
         combo_UserLevel.currentIndexChanged.connect(on_combobox_changed)
 
@@ -741,7 +741,7 @@ class UserLevelsModule:
         button_return.clicked.connect(lambda: self.closeUserLevel(level_cv_frame))
 
     # Функція-обробник зчитування даних з вибраного файлу та запуску рівня
-    def startUserLevel(self, level_cv_frame, filename):
+    def startUserLevel(self, level_cv_frame, filename, NumberOfCamera):
         print("UserLevelsModule: def startUserLevel()")
         print(f'filename: {filename}')
 
@@ -754,4 +754,4 @@ class UserLevelsModule:
         levelCounting.setColor(self.widgetsColor)
         levelCounting.set_connect_ToBD(self.connection)
 
-        levelCounting.create_new_level_click("Користувацький рівень", "User level", level_cv_frame)
+        levelCounting.create_new_level_click("Користувацький рівень", "User level", level_cv_frame, NumberOfCamera)

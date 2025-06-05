@@ -14,6 +14,7 @@ from packaging import version
 class MainWindow():
     def __init__(self):
         self.current_game_level = "Undefined123"
+        self.NumberOfCamera = 0
         self.widgetsColor = ["#9EFFA5", "#DAFFDF"]
         self.widgetsLanguage = 0
         self.widgetsText = {
@@ -713,7 +714,7 @@ class MainWindow():
 
         self.levelCounting.setDefaultParameters()
         start_level_button.clicked.connect(lambda: self.levelCounting.create_new_level_click(
-            self.current_game_level, card.objectName(), level_cv_frame))
+            self.current_game_level, card.objectName(), level_cv_frame, self.NumberOfCamera))
 
         # ------------------------------------------------------------------------------------------------------------------
 
@@ -1067,7 +1068,7 @@ class MainWindow():
         # opacity_effect = QGraphicsOpacityEffect()
         # opacity_effect.setOpacity(0.4)
         # startUserLevel_frame.setGraphicsEffect(opacity_effect)
-        startUserLevel_frame.clicked.connect(lambda: userLevel.openUserLevelPanel(level_cv_frame))
+        startUserLevel_frame.clicked.connect(lambda: userLevel.openUserLevelPanel(level_cv_frame, self.NumberOfCamera))
 
         # ------------------------------------------------------------------------------------------------------------------Фрейм створення користувацього рівня
 
@@ -1116,14 +1117,17 @@ class MainWindow():
             bool: True, якщо камера доступна, False - якщо ні.
         """
         try:
-            # Спроба відкрити камеру з індексом 0 (зазвичай вбудована камера)
-            cap = cv2.VideoCapture(0)
-            if cap is None or not cap.isOpened():
-                print("Камера не знайдена або недоступна")
-                return False
-            print("Камера знайдена")
-            cap.release()  # Звільняємо камеру
-            return True
+            # Спроба відкрити камери з індексом 0 - 2
+            for N in range(3):
+                cap = cv2.VideoCapture(N)
+                if cap is None or not cap.isOpened():
+                    print("Камера не знайдена або недоступна")
+                    continue
+                    # return False
+                print("Камера знайдена")
+                cap.release()  # Звільняємо камеру
+                self.NumberOfCamera = N
+                return True
         except Exception as e:
             print(f"Помилка при перевірці камери: {e}")
             return False

@@ -1047,7 +1047,7 @@ class SettingsModule:
 
             # Формування списку у потрібному форматі
             formatted_results = [
-                [f"FingerImages/{row[0]}.jpg", row[1], row[2]]
+                [f"FingerImages/{row[0]}.png", row[1], row[2]]
                 for row in results
             ]
 
