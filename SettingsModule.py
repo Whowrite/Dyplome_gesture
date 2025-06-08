@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QApplication, QLabel, QWidget, QPushButton, QFrame, QHBoxLayout, \
+from PyQt5.QtWidgets import QApplication, QLabel, QGraphicsOpacityEffect, QPushButton, QFrame, QHBoxLayout, \
     QStyle, QMessageBox, QRadioButton, QButtonGroup, QProgressBar
 from PyQt5.QtGui import QImage, QPixmap, QFont, QIcon, QTransform
 from PyQt5.QtGui import QImage, QPixmap
@@ -17,6 +17,7 @@ class SettingsModule:
         self.Music = music
         # self.Music.play_music()  # Початок відтворення
         self.button_Music_Checked = True
+        self.helpValue = 0
         self.widgetsText = {
             "label_language": ['Мова 🌐', 'Language 🌐'],
             "radio_ukrainian": ['Українська', 'Ukrainian'],
@@ -37,7 +38,7 @@ class SettingsModule:
             "label_AverageTimeSessions": ['Середній час сеансу (хв.):', 'Average session time (minutes):'],
             "title_outDeveloper": ['Порада від розробника: “Іноді лінь, може підштовхнути вас до здійснення мрій!',
                                    'A tip from the developer: "Sometimes being lazy can make you realize your dreams!'],
-            "button_help_statistics": ["Допоміжний текст 4!!!", "Help text 4!!!"]
+            "helpButtonNextText": ['Далі', 'Next']
         }
         self.wishes = {
             0: [
@@ -68,6 +69,10 @@ class SettingsModule:
         self.button_closeSettings = None
         self.button_Statistics = None
         self.button_Music = None
+        self.arrow = None
+        self.helpText = None
+        self.helpButtonNextText = None
+        self.frame_UserStatisticsHelp = None
 
     # Функція для зміни мови додатку
     def set_language(self, lang):
@@ -594,8 +599,7 @@ class SettingsModule:
 
         # Підключення сигналу "clicked" до обробника
         button_help.clicked.connect(
-            partial(self.main_window.showHelpWindow, self.widgetsText["button_help_statistics"][self.widgetsLanguage],
-                    "FingerImages/Записування з екрана 2025-04-16 112136.gif"))
+            partial(self.NextHelpInfo))
 
         # ------------------------------------------------------------------------------------------------------------------Заголовки
 
@@ -835,6 +839,132 @@ class SettingsModule:
                                         border-radius: 10px; /* Закруглення кутів */
                                     }}
                                 """)
+
+        # ------------------------------------------------------------------------------------------------------------------Компоненти для відображення довідки
+
+        self.frame_UserStatisticsHelp = QFrame(frame_UserStatistics)
+        self.frame_UserStatisticsHelp.setGeometry(0, 0, 1315, 917)
+        self.frame_UserStatisticsHelp.hide()
+        opacity_effect = QGraphicsOpacityEffect()
+        opacity_effect.setOpacity(0.5)  # Прозорість
+        self.frame_UserStatisticsHelp.setGraphicsEffect(opacity_effect)
+        self.frame_UserStatisticsHelp.setStyleSheet(f"""
+                                    QFrame {{
+                                        background-color: #eac792; /* Фон картки */
+                                        border-radius: 10px; /* Закруглені кути */
+                                    }}
+                                """)
+
+        # Стрілка
+        self.arrow = QLabel(frame_UserStatistics)
+        self.arrow.setGeometry(400, 130, 100, 100)
+        pixmap = QPixmap("FingerImages/BlueArrow.png")
+        # Обертаємо зображення
+        transform = QTransform().rotate(200)
+        rotated_pixmap = pixmap.transformed(transform)
+        self.arrow.setPixmap(rotated_pixmap)
+        self.arrow.setScaledContents(True)
+        self.arrow.setStyleSheet(f"""
+                            QLabel {{
+                                background-color: none; /* Колір фону */
+                            }}
+                        """)
+        self.arrow.hide()
+
+        # Інформація
+        self.helpText = QLabel(frame_UserStatistics)
+        self.helpText.setWordWrap(True)
+        self.helpText.setFrameShape(QLabel.StyledPanel)
+        self.helpText.setFrameShadow(QLabel.Plain)
+        self.helpText.setAlignment(Qt.AlignCenter)
+        self.helpText.setStyleSheet(f"""
+                                    QLabel {{
+                                        background-color: none; /* Колір фону */
+                                        color: blue;
+                                    }}
+                                """)
+        self.helpText.hide()
+
+        # Кнопка для переходу на наступну інформацію
+        self.helpButtonNextText = QPushButton(frame_UserStatistics)
+        self.helpButtonNextText.setText(self.widgetsText["helpButtonNextText"][self.widgetsLanguage])
+        self.helpButtonNextText.setStyleSheet(f"""
+                                        QPushButton {{
+                                            background-color: blue; /* Колір кнопки */
+                                            color: white; /* Колір тексту */
+                                            border-radius: 10px; /* Закруглення кутів */
+                                        }}
+                                        QPushButton:hover {{
+                                            background-color: #5dade2; /* Колір кнопки при наведенні */
+                                        }}
+                                        QPushButton:pressed {{
+                                            background-color: #1f618d; /* Колір кнопки при натисканні */
+                                        }}
+                                    """)
+        self.helpButtonNextText.clicked.connect(self.NextHelpInfo)
+        self.helpButtonNextText.hide()
+
+    # Функція-обробник кнопки для демонстрації довідки
+    def NextHelpInfo(self):
+        ListText = {
+            "helpText_1": ["Відображення режиму гри, що проходився найбільшу кількість разів",
+                           "Display the game mode that has been played the most times"],
+            "helpText_2": ["Відображення кількості сесій зроблених підряд, протягом N днів",
+                           "Displays the number of sessions made in a row, within N days"],
+            "helpText_3": ["Відображення середнього значення часу сесій у хвилинах",
+                           "Display the average session time in minutes"],
+            "helpText_4": ["Відображення жестів з найбільшою кількістю правильних відповідей з указанням кількості неправильних відповідей",
+                           "Display of gestures with the highest number of correct answers with the number of incorrect answers"]
+        }
+        if self.helpValue == 0:
+            self.frame_UserStatisticsHelp.show()
+            self.arrow.setGeometry(450, 240, 100, 100)
+            pixmap = QPixmap("FingerImages/BlueArrow.png")
+            # Обертаємо зображення
+            transform = QTransform().rotate(200)
+            rotated_pixmap = pixmap.transformed(transform)
+            self.arrow.setPixmap(rotated_pixmap)
+            self.arrow.show()
+            font1 = QFont()
+            font1.setBold(True)
+            font1.setPointSize(14)
+            self.helpText.setGeometry(550, 140, 200, 200)
+            self.helpText.setText(ListText["helpText_1"][self.widgetsLanguage])
+            self.helpText.setFont(font1)
+            self.helpText.show()
+            font2 = QFont()
+            font2.setBold(True)
+            font2.setPointSize(12)
+            self.helpButtonNextText.setGeometry(600, 320, 100, 50)
+            self.helpButtonNextText.setFont(font2)
+            self.helpButtonNextText.show()
+            self.helpValue = 20
+        elif self.helpValue == 20:
+            self.arrow.setGeometry(450, 390, 100, 100)
+            self.helpText.setGeometry(550, 290, 200, 200)
+            self.helpText.setText(ListText["helpText_2"][self.widgetsLanguage])
+            self.helpButtonNextText.setGeometry(600, 470, 100, 50)
+            self.helpValue = 40
+        elif self.helpValue == 40:
+            self.arrow.setGeometry(450, 540, 100, 100)
+            self.helpText.setGeometry(550, 440, 200, 200)
+            self.helpText.setText(ListText["helpText_3"][self.widgetsLanguage])
+            self.helpButtonNextText.setGeometry(600, 610, 100, 50)
+            self.helpValue = 60
+        elif self.helpValue == 60:
+            self.arrow.setGeometry(750, 390, 100, 100)
+            pixmap = QPixmap("FingerImages/BlueArrow.png")
+            self.arrow.setPixmap(pixmap)
+            self.helpText.setGeometry(480, 230, 350, 250)
+            self.helpText.setText(ListText["helpText_4"][self.widgetsLanguage])
+            self.helpButtonNextText.setGeometry(600, 450, 100, 50)
+            self.helpValue = 80
+        else:
+            self.frame_UserStatisticsHelp.hide()
+            self.arrow.hide()
+            self.helpButtonNextText.hide()
+            self.helpText.hide()
+            self.helpValue = 0
 
     # Функція для повернення значення улюбленого режиму гри користувача
     def get_userLikeMode(self):

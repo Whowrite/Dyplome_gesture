@@ -17,6 +17,7 @@ class MainWindow():
         self.NumberOfCamera = 0
         self.widgetsColor = ["#9EFFA5", "#DAFFDF"]
         self.widgetsLanguage = 0
+        self.helpValue = 0
         self.widgetsText = {
             "title_window": ['Потренуємо ваші нейрони', 'ToTrainYourNeurons'],
             "About_program": ['Тренування нейропсихологічних вправ', 'Neuropsychological exercise training'],
@@ -33,7 +34,7 @@ class MainWindow():
             "textForLevels": ['Рівень ', 'Level '],
             "button_help": ["Допоміжний текст!!!", "Help text!!!"],
             "button_help_select_level": ["Допоміжний текст 2!!!", "Help text 2!!!"],
-            "button_help_ForUserLevels": ["Допоміжний текст 3!!!", "Help text 3!!!"]
+            "helpButtonNextText": ['Далі', 'Next']
         }
         # Компоненти, що залежні від налаштувань додатку
         self.window = None
@@ -45,6 +46,10 @@ class MainWindow():
         self.button_settings = None
         self.best_try_level_num = None
         self.number_try_level_num = None
+        self.arrow = None
+        self.helpText = None
+        self.helpButtonNextText = None
+        self.frame_UserStatisticsHelp = None
 
         # Оголошення зв'язків з модулями застосунку
         self.connection = None
@@ -679,7 +684,7 @@ class MainWindow():
 
         # ------------------------------------------------------------------------------------------------------------------Фрейм для тренування
 
-        level_cv_frame = QFrame(self.select_Level)
+        level_cv_frame = QFrame(self.window)
         level_cv_frame.setGeometry(0, 0, 1315, 917)
         level_cv_frame.hide()
         level_cv_frame.setStyleSheet(f"""
@@ -980,16 +985,6 @@ class MainWindow():
                             }}
                         """)
 
-        try:
-            self.button_help.clicked.disconnect()
-        except Exception:
-            pass  # Якщо немає підключених обробників, ігноруємо помилку
-
-        # Підключення сигналу "clicked" до обробника
-        self.button_help.clicked.connect(
-            partial(self.showHelpWindow, self.widgetsText["button_help_ForUserLevels"][self.widgetsLanguage],
-                    "FingerImages/Записування з екрана 2025-04-16 112136.gif"))
-
         self.duplicate_card_to_frame(card)
 
         # ------------------------------------------------------------------------------------------------------------------Кнопка для повернення на головну сторінку
@@ -1040,10 +1035,8 @@ class MainWindow():
         scenario.setPixmap(pixmap2)
         scenario.setScaledContents(True)
         scenario.show()
-        # background-color: {self.widgetsColor[1]}; /* Фон картки */
         scenario.setStyleSheet(f"""
                             QFrame {{
-                                
                                 border-radius: 10px; /* Закруглені кути */
                             }}
                         """)
@@ -1065,10 +1058,7 @@ class MainWindow():
                                     border-radius: 10px; /* Закруглені кути */
                                 }}
                             """)
-        # opacity_effect = QGraphicsOpacityEffect()
-        # opacity_effect.setOpacity(0.4)
-        # startUserLevel_frame.setGraphicsEffect(opacity_effect)
-        startUserLevel_frame.clicked.connect(lambda: userLevel.openUserLevelPanel(level_cv_frame, self.NumberOfCamera))
+        startUserLevel_frame.clicked.connect(lambda: [userLevel.setHelpInformationType(True), userLevel.openUserLevelPanel(level_cv_frame, self.NumberOfCamera)])
 
         # ------------------------------------------------------------------------------------------------------------------Фрейм створення користувацього рівня
 
@@ -1085,12 +1075,165 @@ class MainWindow():
                                     border-radius: 10px; /* Закруглені кути */
                                 }}
                             """)
-        # opacity_effect2 = QGraphicsOpacityEffect()
-        # opacity_effect2.setOpacity(0.4)
-        # createUserLevel_frame.setGraphicsEffect(opacity_effect2)
         createUserLevel_frame.clicked.connect(lambda: userLevel.createUserLevel())
 
         level_cv_frame.raise_()
+
+        # ------------------------------------------------------------------------------------------------------------------Компоненти для відображення довідки
+
+        self.frame_UserStatisticsHelp = QFrame(self.select_Level)
+        self.frame_UserStatisticsHelp.setGeometry(0, 0, 1315, 917)
+        self.frame_UserStatisticsHelp.hide()
+        opacity_effect = QGraphicsOpacityEffect()
+        opacity_effect.setOpacity(0.5)  # Прозорість
+        self.frame_UserStatisticsHelp.setGraphicsEffect(opacity_effect)
+        self.frame_UserStatisticsHelp.setStyleSheet(f"""
+                                            QFrame {{
+                                                background-color: #eac792; /* Фон картки */
+                                                border-radius: 10px; /* Закруглені кути */
+                                            }}
+                                        """)
+
+        # Стрілка
+        self.arrow = QLabel(self.select_Level)
+        self.arrow.setGeometry(400, 130, 100, 100)
+        self.arrow.setScaledContents(True)
+        self.arrow.setStyleSheet(f"""
+                                    QLabel {{
+                                        background-color: none; /* Колір фону */
+                                    }}
+                                """)
+        self.arrow.hide()
+
+        # Інформація
+        self.helpText = QLabel(self.select_Level)
+        self.helpText.setWordWrap(True)
+        self.helpText.setFrameShape(QLabel.StyledPanel)
+        self.helpText.setFrameShadow(QLabel.Plain)
+        self.helpText.setAlignment(Qt.AlignCenter)
+        self.helpText.setStyleSheet(f"""
+                                            QLabel {{
+                                                background-color: none; /* Колір фону */
+                                                color: blue;
+                                            }}
+                                        """)
+        self.helpText.hide()
+
+        # Кнопка для переходу на наступну інформацію
+        self.helpButtonNextText = QPushButton(self.select_Level)
+        self.helpButtonNextText.setText(self.widgetsText["helpButtonNextText"][self.widgetsLanguage])
+        self.helpButtonNextText.setStyleSheet(f"""
+                                                QPushButton {{
+                                                    background-color: blue; /* Колір кнопки */
+                                                    color: white; /* Колір тексту */
+                                                    border-radius: 10px; /* Закруглення кутів */
+                                                }}
+                                                QPushButton:hover {{
+                                                    background-color: #5dade2; /* Колір кнопки при наведенні */
+                                                }}
+                                                QPushButton:pressed {{
+                                                    background-color: #1f618d; /* Колір кнопки при натисканні */
+                                                }}
+                                            """)
+        self.helpButtonNextText.clicked.connect(lambda: self.NextHelpInfo(userLevel.getHelpInformationType()))
+        self.helpButtonNextText.hide()
+
+        try:
+            self.button_help.clicked.disconnect()
+        except Exception:
+            pass  # Якщо немає підключених обробників, ігноруємо помилку
+
+        # Підключення сигналу "clicked" до обробника
+        self.button_help.clicked.connect(lambda: self.NextHelpInfo(userLevel.getHelpInformationType()))
+
+    # Функція-обробник кнопки для демонстрації довідки
+    def NextHelpInfo(self, HelpInformationType):
+        if not HelpInformationType:
+            ListText = {
+                "helpText_1": ["Кнопка, що дозволяє перейти до вибору користувацького рівня",
+                               "Button that allows you to select the user level"],
+                "helpText_2": ["Кнопка, що дозволяє перейти до створення користувацького рівня",
+                               "Button that allows you to create a user level"]
+            }
+            if self.helpValue == 0:
+                self.frame_UserStatisticsHelp.show()
+                self.arrow.setGeometry(620, 340, 100, 100)
+                pixmap = QPixmap("FingerImages/BlueArrow.png")
+                # Обертаємо зображення
+                transform = QTransform().rotate(200)
+                rotated_pixmap = pixmap.transformed(transform)
+                self.arrow.setPixmap(rotated_pixmap)
+                self.arrow.show()
+                font1 = QFont()
+                font1.setBold(True)
+                font1.setPointSize(14)
+                self.helpText.setGeometry(750, 240, 280, 200)
+                self.helpText.setText(ListText["helpText_1"][self.widgetsLanguage])
+                self.helpText.setFont(font1)
+                self.helpText.show()
+                font2 = QFont()
+                font2.setBold(True)
+                font2.setPointSize(12)
+                self.helpButtonNextText.setGeometry(830, 400, 100, 50)
+                self.helpButtonNextText.setFont(font2)
+                self.helpButtonNextText.show()
+                self.helpValue = 20
+            elif self.helpValue == 20:
+                self.arrow.setGeometry(950, 390, 100, 100)
+                pixmap = QPixmap("FingerImages/BlueArrow.png")
+                self.arrow.setPixmap(pixmap)
+                self.helpText.setGeometry(620, 260, 350, 250)
+                self.helpText.setText(ListText["helpText_2"][self.widgetsLanguage])
+                self.helpButtonNextText.setGeometry(750, 450, 100, 50)
+                self.helpValue = 40
+            else:
+                self.frame_UserStatisticsHelp.hide()
+                self.arrow.hide()
+                self.helpButtonNextText.hide()
+                self.helpText.hide()
+                self.helpValue = 0
+        else:
+            ListText2 = {
+                "helpText_1": ["Список, що містить користувацькі рівні.",
+                               "A list containing custom levels."],
+                "helpText_2": ["Для того, щоб розпочати проходження одного з них, потрібно вибрати його з цього списку.",
+                               "In order to start working through one of them, you need to select it from this list."]
+            }
+            if self.helpValue == 0:
+                self.frame_UserStatisticsHelp.show()
+                self.arrow.setGeometry(690, 420, 100, 100)
+                pixmap = QPixmap("FingerImages/BlueArrow.png")
+                # Обертаємо зображення
+                transform = QTransform().rotate(200)
+                rotated_pixmap = pixmap.transformed(transform)
+                self.arrow.setPixmap(rotated_pixmap)
+                self.arrow.show()
+                font1 = QFont()
+                font1.setBold(True)
+                font1.setPointSize(14)
+                self.helpText.setGeometry(820, 320, 280, 200)
+                self.helpText.setText(ListText2["helpText_1"][self.widgetsLanguage])
+                self.helpText.setFont(font1)
+                self.helpText.show()
+                font2 = QFont()
+                font2.setBold(True)
+                font2.setPointSize(12)
+                self.helpButtonNextText.setGeometry(900, 480, 100, 50)
+                self.helpButtonNextText.setFont(font2)
+                self.helpButtonNextText.show()
+                self.helpValue = 20
+            elif self.helpValue == 20:
+                self.arrow.setGeometry(690, 420, 100, 100)
+                self.helpText.setGeometry(820, 320, 350, 200)
+                self.helpText.setText(ListText2["helpText_2"][self.widgetsLanguage])
+                self.helpButtonNextText.setGeometry(930, 480, 100, 50)
+                self.helpValue = 40
+            else:
+                self.frame_UserStatisticsHelp.hide()
+                self.arrow.hide()
+                self.helpButtonNextText.hide()
+                self.helpText.hide()
+                self.helpValue = 0
 
     # Функція для перевірки версії застосунку
     def check_for_updates(self):

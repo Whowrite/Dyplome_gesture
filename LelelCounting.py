@@ -3,8 +3,8 @@ from datetime import datetime
 import HandTModule as htm
 import CollectionLevels as Cl
 from PyQt5.QtWidgets import QApplication, QLabel, QWidget, QPushButton, QFrame, QHBoxLayout, \
-    QStyle, QMessageBox
-from PyQt5.QtGui import QImage, QPixmap, QFont
+    QStyle, QMessageBox, QGraphicsOpacityEffect
+from PyQt5.QtGui import QImage, QPixmap, QFont, QTransform
 from PyQt5.QtCore import QTimer, Qt
 
 class CreateLevel:
@@ -21,6 +21,7 @@ class CreateLevel:
         self.countdown_timer = QTimer()
         self.infoAboutGestures = {}
         self.countpoints = 0
+        self.helpValue = 0
         self.cards_names = {
             "Gestures with one hand": "Жести однією рукою",
             "Gestures with two hand": "Жести двума руками",
@@ -30,11 +31,13 @@ class CreateLevel:
         self.widgetsColor = ["#9EFFA5", "#DAFFDF"]
         self.widgetsLanguage = widgetsLanguage
         self.widgetsText = {
+            "title_window": ['Потренуємо ваші нейрони', 'ToTrainYourNeurons'],
             "button_skip": ['Пропустити', 'Skip'],
             "msg_box": [['Повідомлення', 'Рівень пройдено!', "Бажаєте продовжити?", "Добре", "Ви зробили ", " помилок під час проходження рівня!",
                          "Бажаєте пройти рівень заново?", "Так", "Ні"],
                         ['Message', 'The level is completed!', "Would you like to continue?", "Good", "You have done ", " errors during the level passage!",
                          "Do you want to go through the level again?", "Yes", "No"]],
+            "helpButtonNextText": ['Далі', 'Next']
         }
         self.LevelStatistics = {
             "Жести однією рукою": {
@@ -55,6 +58,10 @@ class CreateLevel:
             }
         }
         self.connection = None
+        self.arrow = None
+        self.helpText = None
+        self.helpButtonNextText = None
+        self.frame_UserStatisticsHelp = None
 
     # Встановлення підключення до бд
     def set_connect_ToBD(self, con):
@@ -373,7 +380,224 @@ class CreateLevel:
         button_skip.clicked.connect(
             lambda: (self.skipGesture(level_cv_frame, frameForLevelCounters, timer, cap, camera_label)))
 
+        # ------------------------------------------------------------------------------------------------------------------Назва програми
+
+        title_window = QLabel(level_cv_frame)
+        title_window.setGeometry(468, 23, 380, 55)
+        title_window.setText(self.widgetsText["title_window"][self.widgetsLanguage])
+
+        font2 = QFont()
+        font2.setBold(True)
+        font2.setPointSize(16)
+        title_window.setFont(font2)
+        title_window.show()
+
+        title_window.setFrameShape(QLabel.StyledPanel)
+        title_window.setFrameShadow(QLabel.Plain)
+        title_window.setAlignment(Qt.AlignCenter)
+        title_window.setStyleSheet(f"""
+                        QLabel {{
+                            background-color: {self.widgetsColor[1]}; /* Колір фону */
+                            color: black; /* Колір тексту */
+                            border-radius: 10px; /* Закруглення кутів */
+                        }}
+                    """)
+
+        # ------------------------------------------------------------------------------------------------------------------Кнопка Довідки
+
+        button_help = QPushButton(level_cv_frame)
+        button_help.setGeometry(1206, 18, 60, 60)
+        button_help.setText("?")
+        button_help.show()
+
+        font3 = QFont()
+        font3.setBold(True)
+        font3.setPointSize(18)
+        button_help.setFont(font3)
+
+        button_help.setStyleSheet(f"""
+                        QPushButton {{
+                            background-color: {self.widgetsColor[1]}; /* Колір кнопки */
+                            color: #eb8934; /* Колір тексту */
+                            border-radius: 30px; /* Закруглення кутів */
+                        }}
+                        QPushButton:hover {{
+                            background-color: #5dade2; /* Колір кнопки при наведенні */
+                        }}
+                        QPushButton:pressed {{
+                            background-color: #1f618d; /* Колір кнопки при натисканні */
+                        }}
+                    """)
+
+        # Підключення сигналу "clicked" до обробника
+        button_help.clicked.connect(self.NextHelpInfo)
+
+        # ------------------------------------------------------------------------------------------------------------------Компоненти для відображення довідки
+
+        self.frame_UserStatisticsHelp = QFrame(level_cv_frame)
+        self.frame_UserStatisticsHelp.setGeometry(0, 0, 1315, 917)
+        self.frame_UserStatisticsHelp.hide()
+        opacity_effect = QGraphicsOpacityEffect()
+        opacity_effect.setOpacity(0.5)  # Прозорість
+        self.frame_UserStatisticsHelp.setGraphicsEffect(opacity_effect)
+        self.frame_UserStatisticsHelp.setStyleSheet(f"""
+                                                    QFrame {{
+                                                        background-color: #eac792; /* Фон картки */
+                                                        border-radius: 10px; /* Закруглені кути */
+                                                    }}
+                                                """)
+
+        # Стрілка
+        self.arrow = QLabel(level_cv_frame)
+        self.arrow.setGeometry(400, 130, 100, 100)
+        self.arrow.setScaledContents(True)
+        self.arrow.setStyleSheet(f"""
+                                            QLabel {{
+                                                background-color: none; /* Колір фону */
+                                            }}
+                                        """)
+        self.arrow.hide()
+
+        # Інформація
+        self.helpText = QLabel(level_cv_frame)
+        self.helpText.setWordWrap(True)
+        self.helpText.setFrameShape(QLabel.StyledPanel)
+        self.helpText.setFrameShadow(QLabel.Plain)
+        self.helpText.setAlignment(Qt.AlignCenter)
+        self.helpText.setStyleSheet(f"""
+                                                    QLabel {{
+                                                        background-color: none; /* Колір фону */
+                                                        color: blue;
+                                                    }}
+                                                """)
+        self.helpText.hide()
+
+        # Кнопка для переходу на наступну інформацію
+        self.helpButtonNextText = QPushButton(level_cv_frame)
+        self.helpButtonNextText.setText(self.widgetsText["helpButtonNextText"][self.widgetsLanguage])
+        self.helpButtonNextText.setStyleSheet(f"""
+                                                        QPushButton {{
+                                                            background-color: blue; /* Колір кнопки */
+                                                            color: white; /* Колір тексту */
+                                                            border-radius: 10px; /* Закруглення кутів */
+                                                        }}
+                                                        QPushButton:hover {{
+                                                            background-color: #5dade2; /* Колір кнопки при наведенні */
+                                                        }}
+                                                        QPushButton:pressed {{
+                                                            background-color: #1f618d; /* Колір кнопки при натисканні */
+                                                        }}
+                                                    """)
+        self.helpButtonNextText.clicked.connect(self.NextHelpInfo)
+        self.helpButtonNextText.hide()
+
         # ------------------------------------------------------------------------------------------------------------------
+
+    # Функція-обробник кнопки для демонстрації довідки
+    def NextHelpInfo(self):
+        ListText = {
+            "helpText_1": ["Це вікно для проходження користувацького рівня!",
+                           "This is the window to complete the custom level!"],
+            "helpText_2": ["Для того, щоб розпочати потрібно показати жест в камеру пристрою",
+                           "To get started, you need to show a gesture to the device's camera"],
+            "helpText_3": [
+                "",
+                ""],
+            "helpText_4": [
+                "Це порядок жестів, вибравши необхідний елемент порядку, він набуде червоного виділення контуру",
+                ""],
+            "helpText_5": [
+                "Тепер виберемо жест, зі списку жестів, клікнувши по ньому",
+                ""],
+            "helpText_6": [
+                "Проведіть ці маніпуляції стільки разів, скільки встановлено кількість жестів",
+                ""],
+            "helpText_7": [
+                "Та збережіть рівень за допомогою кнопки",
+                ""],
+            "helpText_8": [
+                "Для того, щоб очистити все вікно від вибраних жестів натисніть на кнопку",
+                ""]
+        }
+        if self.helpValue == 0:
+            self.frame_UserStatisticsHelp.show()
+            font1 = QFont()
+            font1.setBold(True)
+            font1.setPointSize(14)
+            self.helpText.setGeometry(500, 300, 300, 200)
+            self.helpText.setText(ListText["helpText_1"][self.widgetsLanguage])
+            self.helpText.setFont(font1)
+            self.helpText.show()
+            font2 = QFont()
+            font2.setBold(True)
+            font2.setPointSize(12)
+            self.helpButtonNextText.setGeometry(590, 450, 100, 50)
+            self.helpButtonNextText.setFont(font2)
+            self.helpButtonNextText.show()
+        elif self.helpValue == 20:
+            self.arrow.setGeometry(600, 470, 100, 100)
+            pixmap = QPixmap("FingerImages/BlueArrow.png")
+            # Обертаємо зображення
+            transform = QTransform().rotate(200)
+            rotated_pixmap = pixmap.transformed(transform)
+            self.arrow.setPixmap(rotated_pixmap)
+            self.arrow.show()
+            self.helpText.setGeometry(670, 450, 300, 200)
+            self.helpText.setText(ListText["helpText_2"][self.widgetsLanguage])
+            self.helpButtonNextText.setGeometry(760, 600, 100, 50)
+        elif self.helpValue == 40:
+            self.arrow.setGeometry(910, 530, 100, 100)
+            pixmap = QPixmap("FingerImages/BlueArrow.png")
+            self.arrow.setPixmap(pixmap)
+            self.helpText.setGeometry(630, 450, 300, 200)
+            self.helpText.setText(ListText["helpText_3"][self.widgetsLanguage])
+            self.helpButtonNextText.setGeometry(720, 650, 100, 50)
+        elif self.helpValue == 60:
+            self.arrow.setGeometry(600, 170, 100, 100)
+            pixmap = QPixmap("FingerImages/BlueArrow.png")
+            # Обертаємо зображення
+            transform = QTransform().rotate(200)
+            rotated_pixmap = pixmap.transformed(transform)
+            self.arrow.setPixmap(rotated_pixmap)
+            self.helpText.setGeometry(670, 130, 350, 200)
+            self.helpText.setText(ListText["helpText_4"][self.widgetsLanguage])
+            self.helpButtonNextText.setGeometry(790, 320, 100, 50)
+        elif self.helpValue == 80:
+            self.arrow.setGeometry(150, 170, 100, 100)
+            self.helpText.setGeometry(240, 120, 350, 200)
+            self.helpText.setText(ListText["helpText_5"][self.widgetsLanguage])
+            self.helpButtonNextText.setGeometry(360, 280, 100, 50)
+        elif self.helpValue == 100:
+            self.arrow.hide()
+            self.helpText.setGeometry(520, 320, 350, 200)
+            self.helpText.setText(ListText["helpText_6"][self.widgetsLanguage])
+            self.helpButtonNextText.setGeometry(640, 480, 100, 50)
+            self.helpButtonNextText.show()
+        elif self.helpValue == 120:
+            pixmap = QPixmap("FingerImages/BlueArrow.png")
+            self.arrow.setPixmap(pixmap)
+            self.arrow.show()
+            self.arrow.setGeometry(830, 750, 100, 100)
+            self.helpText.setGeometry(670, 600, 300, 200)
+            self.helpText.setText(ListText["helpText_7"][self.widgetsLanguage])
+            self.helpButtonNextText.setGeometry(760, 750, 100, 50)
+        elif self.helpValue == 140:
+            self.arrow.setGeometry(600, 700, 100, 100)
+            pixmap = QPixmap("FingerImages/BlueArrow.png")
+            # Обертаємо зображення
+            transform = QTransform().rotate(200)
+            rotated_pixmap = pixmap.transformed(transform)
+            self.arrow.setPixmap(rotated_pixmap)
+            self.helpText.setGeometry(680, 600, 350, 200)
+            self.helpText.setText(ListText["helpText_8"][self.widgetsLanguage])
+            self.helpButtonNextText.setGeometry(780, 760, 100, 50)
+        else:
+            self.frame_UserStatisticsHelp.hide()
+            self.arrow.hide()
+            self.helpButtonNextText.hide()
+            self.helpText.hide()
+            self.helpValue = -20
+        self.helpValue += 20
 
     # Примусове завершення рівня після N секунд
     def force_end_level(self, timer, cap, camera_label, level_cv_frame, frameForLevelCounters):
