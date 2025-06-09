@@ -501,23 +501,23 @@ class CreateLevel:
             "helpText_2": ["Для того, щоб розпочати потрібно показати жест в камеру пристрою",
                            "To get started, you need to show a gesture to the device's camera"],
             "helpText_3": [
-                "",
-                ""],
+                "Якщо правильно показати жест, це відобразиться на панелі у вигляді значка: ✔",
+                "If you show the gesture correctly, it will appear as an icon in the panel:"],
             "helpText_4": [
-                "Це порядок жестів, вибравши необхідний елемент порядку, він набуде червоного виділення контуру",
-                ""],
+                "Якщо не вдається показати жест, його можна пропустити натиснувши кнопку",
+                "If you can't show the gesture, you can skip it by pressing the button"],
             "helpText_5": [
-                "Тепер виберемо жест, зі списку жестів, клікнувши по ньому",
-                ""],
+                "Це також відобрахиться на панелі у вигляді значка: Х",
+                "This will also be displayed in the panel as an icon:"],
             "helpText_6": [
-                "Проведіть ці маніпуляції стільки разів, скільки встановлено кількість жестів",
-                ""],
+                "Також рівень може бути обмежений в часу, після його закінчення проходження рівня автоматично буде завершено",
+                "Also, the level can be limited in time, after its expiration, the level will be automatically completed"],
             "helpText_7": [
-                "Та збережіть рівень за допомогою кнопки",
-                ""],
+                "Після закінчення рівня можна отримати повідомлення про успіх",
+                "Upon completion of the level, you can receive a notification of success"],
             "helpText_8": [
-                "Для того, щоб очистити все вікно від вибраних жестів натисніть на кнопку",
-                ""]
+                "Або отримати повідомлення про кількість неправильно показаних жестів та питання, після якого можна завершити проходження рівня або спробувати знову",
+                "At the end of the level, you can receive a success message or receive a message about the number of incorrect gestures and a question, after which you can complete the level or try again"]
         }
         if self.helpValue == 0:
             self.frame_UserStatisticsHelp.show()
@@ -535,62 +535,46 @@ class CreateLevel:
             self.helpButtonNextText.setFont(font2)
             self.helpButtonNextText.show()
         elif self.helpValue == 20:
-            self.arrow.setGeometry(600, 470, 100, 100)
+            self.arrow.setGeometry(330, 200, 100, 100)
             pixmap = QPixmap("FingerImages/BlueArrow.png")
             # Обертаємо зображення
             transform = QTransform().rotate(200)
             rotated_pixmap = pixmap.transformed(transform)
             self.arrow.setPixmap(rotated_pixmap)
             self.arrow.show()
-            self.helpText.setGeometry(670, 450, 300, 200)
+            self.helpText.setGeometry(440, 140, 300, 200)
             self.helpText.setText(ListText["helpText_2"][self.widgetsLanguage])
-            self.helpButtonNextText.setGeometry(760, 600, 100, 50)
+            self.helpButtonNextText.setGeometry(530, 300, 100, 50)
         elif self.helpValue == 40:
-            self.arrow.setGeometry(910, 530, 100, 100)
-            pixmap = QPixmap("FingerImages/BlueArrow.png")
-            self.arrow.setPixmap(pixmap)
-            self.helpText.setGeometry(630, 450, 300, 200)
+            self.arrow.setGeometry(500, 730, 100, 100)
+            self.helpText.setGeometry(580, 600, 300, 200)
             self.helpText.setText(ListText["helpText_3"][self.widgetsLanguage])
-            self.helpButtonNextText.setGeometry(720, 650, 100, 50)
+            self.helpButtonNextText.setGeometry(670, 760, 100, 50)
         elif self.helpValue == 60:
-            self.arrow.setGeometry(600, 170, 100, 100)
-            pixmap = QPixmap("FingerImages/BlueArrow.png")
-            # Обертаємо зображення
-            transform = QTransform().rotate(200)
-            rotated_pixmap = pixmap.transformed(transform)
-            self.arrow.setPixmap(rotated_pixmap)
-            self.helpText.setGeometry(670, 130, 350, 200)
+            self.arrow.setGeometry(600, 820, 100, 100)
+            self.helpText.setGeometry(610, 650, 350, 200)
             self.helpText.setText(ListText["helpText_4"][self.widgetsLanguage])
-            self.helpButtonNextText.setGeometry(790, 320, 100, 50)
+            self.helpButtonNextText.setGeometry(730, 820, 100, 50)
         elif self.helpValue == 80:
-            self.arrow.setGeometry(150, 170, 100, 100)
-            self.helpText.setGeometry(240, 120, 350, 200)
+            self.arrow.setGeometry(540, 730, 100, 100)
+            self.helpText.setGeometry(580, 600, 300, 200)
             self.helpText.setText(ListText["helpText_5"][self.widgetsLanguage])
-            self.helpButtonNextText.setGeometry(360, 280, 100, 50)
+            self.helpButtonNextText.setGeometry(670, 760, 100, 50)
         elif self.helpValue == 100:
-            self.arrow.hide()
-            self.helpText.setGeometry(520, 320, 350, 200)
+            self.arrow.setGeometry(400, 00, 100, 100)
+            self.helpText.setGeometry(450, 20, 450, 200)
             self.helpText.setText(ListText["helpText_6"][self.widgetsLanguage])
-            self.helpButtonNextText.setGeometry(640, 480, 100, 50)
+            self.helpButtonNextText.setGeometry(600, 190, 100, 50)
             self.helpButtonNextText.show()
         elif self.helpValue == 120:
-            pixmap = QPixmap("FingerImages/BlueArrow.png")
-            self.arrow.setPixmap(pixmap)
-            self.arrow.show()
-            self.arrow.setGeometry(830, 750, 100, 100)
-            self.helpText.setGeometry(670, 600, 300, 200)
+            self.arrow.hide()
+            self.helpText.setGeometry(420, 300, 450, 200)
             self.helpText.setText(ListText["helpText_7"][self.widgetsLanguage])
-            self.helpButtonNextText.setGeometry(760, 750, 100, 50)
+            self.helpButtonNextText.setGeometry(590, 450, 100, 50)
         elif self.helpValue == 140:
-            self.arrow.setGeometry(600, 700, 100, 100)
-            pixmap = QPixmap("FingerImages/BlueArrow.png")
-            # Обертаємо зображення
-            transform = QTransform().rotate(200)
-            rotated_pixmap = pixmap.transformed(transform)
-            self.arrow.setPixmap(rotated_pixmap)
-            self.helpText.setGeometry(680, 600, 350, 200)
+            self.helpText.setGeometry(440, 300, 450, 200)
             self.helpText.setText(ListText["helpText_8"][self.widgetsLanguage])
-            self.helpButtonNextText.setGeometry(780, 760, 100, 50)
+            self.helpButtonNextText.setGeometry(610, 480, 100, 50)
         else:
             self.frame_UserStatisticsHelp.hide()
             self.arrow.hide()
