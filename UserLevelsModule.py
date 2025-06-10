@@ -14,7 +14,7 @@ class UserLevelsModule:
         self.gestures = ["", "", ""]
         self.selectPositionGesture = ""
         self.frame_order_gesture = QFrame()
-        self.HelpInformationType = False
+        self.HelpInformationType = -1
         self.helpValue = 0
         self.widgetsColor = widgetsColor
         self.widgetsLanguage = widgetsLanguage
@@ -465,46 +465,6 @@ class UserLevelsModule:
 
         modal.exec_()  # Запускаємо модальне вікно (блокує основне)
 
-    # Функція-обробник кнопки для демонстрації вікна довідки
-    def showHelpWindow(self, helpText, helpGif):
-            print("showHelpWindow")
-            helpWindow = RebuildsComponents.ModalWindow(800, 200, 700, 600)
-            helpWindow.setWindowTitle("Help window")
-            helpWindow.setStyleSheet(f"""
-                                   QDialog {{
-                                       background-color: {self.widgetsColor[1]}; /* Колір вікна */
-                                   }}
-                               """)
-
-            label_helpText = QLabel(helpWindow)
-            label_helpText.setGeometry(20, 50, 200, 500)
-            label_helpText.setText(helpText)
-
-            font = QFont()
-            font.setBold(True)
-            font.setPointSize(14)
-            label_helpText.setFont(font)
-            label_helpText.setWordWrap(True)
-
-            label_helpText.setStyleSheet(f"""
-                            QLabel {{
-                                background-color: {self.widgetsColor[0]}; /* Колір фону */
-                                color: black; /* Колір тексту */
-                                border-radius: 10px; /* Закруглення кутів */
-                            }}
-                        """)
-
-            labelGif = QLabel(helpWindow)
-            labelGif.setGeometry(250, 50, 400, 500)
-
-            movie = QMovie(helpGif)
-            labelGif.setMovie(movie)
-            movie.start()
-
-            labelGif.show()
-
-            helpWindow.exec_()  # Запускаємо модальне вікно (блокує основне)
-
     # Функція для наповнення фрейму "порядок жестів"
     def add_CardsOfGestures(self, number):
         for widget in self.frame_order_gesture.findChildren(QWidget):
@@ -697,7 +657,7 @@ class UserLevelsModule:
     def closeUserLevel(self, level_cv_frame):
         print("Close level_cv_frame")
         level_cv_frame.hide()
-        self.setHelpInformationType(False)
+        self.setHelpInformationType(-1)
         for widget in level_cv_frame.findChildren(QWidget):
             widget.deleteLater()
 
